@@ -17,6 +17,8 @@ def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
             print("y{} = q1*y1 + y0 <==> {} = {}*{} + {}\n".format(i+2, y, q, y1, y0))
         return(identite_bezout+(b, r, i = i+1, A=A, B=B, x1=x, y1=y, x0=x1, y0=y1))
 
+def nb_premiers():
+    pass
 
 def main():
     if DEBUG:
