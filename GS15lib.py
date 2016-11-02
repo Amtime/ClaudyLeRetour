@@ -1,8 +1,9 @@
 DEBUG = False
 
 def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
-    """Entrer l'entier et son modulo
-       Output : PGCD(a, b), x, y
+    """
+        Input  : a -> entier, b -> modulo
+        Output : PGCD(a, b), x, y
     """
 
     q = a // b; r = a % b
@@ -18,9 +19,11 @@ def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
         return(identite_bezout(b, r, i=i+1, A=A, B=B, x1=x, y1=y, x0=x1, y0=y1))
 
 def fonction_de_developpement_DES(listeInput):
-    """Attends une liste d'entier en caractère et la développe
-        32 --> 48
     """
+        Input  : liste de 32 entiers
+        Output : liste de 48 entiers
+    """
+
     listeOutput = listeInput[0:5]; listeOutput.insert(0, listeInput[-1])
     for i in range(1,7):
         listeOutput += listeInput[i*4-1:i*4+5]
