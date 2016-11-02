@@ -1,3 +1,5 @@
+from CONST import *
+
 DEBUG = False
 
 def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
@@ -18,7 +20,7 @@ def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
             print("y{} = q1*y1 + y0 <==> {} = {}*{} + {}\n".format(i+2, y, q, y1, y0))
         return(identite_bezout(b, r, i=i+1, A=A, B=B, x1=x, y1=y, x0=x1, y0=y1))
 
-def fonction_de_developpement_DES(listeInput):
+def fonction_de_developpement_Feistel(listeInput):
     """
         Input  : liste de 32 entiers
         Output : liste de 48 entiers
@@ -30,6 +32,19 @@ def fonction_de_developpement_DES(listeInput):
     listeOutput += listeInput[-5:]; listeOutput.append(listeInput[0])
     return(listeOutput)
 
+def sbox_Feistel(blocInput, sbox):
+    indiceLigne = int(blocInput[0] + blocInput[-1], 2)
+    indiceColonne = int(blocInput[1:-1], 2)
+    blockOutput = bin(sbox[indiceLigne][indiceColonne])[2:]
+    while len(blockOutput) < 6:
+        blockOutput = "0" + blockOutput
+    return(blockOutput)
+
+def permutation_Feistel(blocInput):
+    blockOutput = ""
+    for indice in INDICE_PERMUTATION_FEISTEL:
+        blockOutput += str(blocInput[indice - 1])
+    return(blockOutput)
 
 def nb_premiers():
     pass
