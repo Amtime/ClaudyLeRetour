@@ -1,50 +1,32 @@
-from CONST import *
-
-DEBUG = False
-
 def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
+    """Input  : int, int
+       Output : int, int, int  --> PGCD(a, b), x, y
     """
-        Input  : a -> entier, b -> modulo
-        Output : PGCD(a, b), x, y
-    """
-
     q = a // b; r = a % b
     x = q*x1 + x0; y = q*y1 + y0
 
     if r == 0:
         return(b, x1, -y1)
     else:
-        if DEBUG:
-            print("{} = {}*{} + {} <==> {} = {}*{} - {}*{}".format(a, b, q, r, r, A, x, B, y))
-            print("x{} = q1*x1 + x0 <==> {} = {}*{} + {}".format(i+2, x, q, x1, x0))
-            print("y{} = q1*y1 + y0 <==> {} = {}*{} + {}\n".format(i+2, y, q, y1, y0))
         return(identite_bezout(b, r, i=i+1, A=A, B=B, x1=x, y1=y, x0=x1, y0=y1))
 
-def fonction_de_developpement_Feistel(listeInput):
+def decoupage_string(string, n):
+    """ Decoupe une chaîne de caractère en morceau de n caractères. /!\ Si ça ne tombe pas rond la fonction ignore le reste
+        Ex : decoupage_string("abcde", 2) --> ["ab", "cd"] # Le "e" est oublié
+        Input  : str, int
+        Output : list[str]
     """
-        Input  : liste de 32 entiers
-        Output : liste de 48 entiers
-    """
+    output = []
+    for i in range(len(string) // n):
+        output.append(string[i*n: i*n + n])
+    return(output)
 
-    listeOutput = listeInput[0:5]; listeOutput.insert(0, listeInput[-1])
-    for i in range(1,7):
-        listeOutput += listeInput[i*4-1:i*4+5]
-    listeOutput += listeInput[-5:]; listeOutput.append(listeInput[0])
-    return(listeOutput)
-
-def sbox_Feistel(blocInput, sbox):
-    indiceLigne = int(blocInput[0] + blocInput[-1], 2)
-    indiceColonne = int(blocInput[1:-1], 2)
-    blockOutput = bin(sbox[indiceLigne][indiceColonne])[2:]
-    while len(blockOutput) < 6:
-        blockOutput = "0" + blockOutput
-    return(blockOutput)
-
-def permutation_Feistel(blocInput):
-    blockOutput = ""
-    for indice in INDICE_PERMUTATION_FEISTEL:
-        blockOutput += str(blocInput[indice - 1])
-    return(blockOutput)
+def left_padding(string, char, length):
+    """Sert principalement à compléter les 0 à gauche des nombres en binaires"""
+    output = ""
+    while len(string) < length:
+        output += char + output
+    return(output)
 
 def nb_premiers():
     pass
