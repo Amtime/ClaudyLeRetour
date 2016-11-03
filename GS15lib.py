@@ -29,6 +29,7 @@ def left_padding(string, char, length):
     return(output)
 
 def nb_premiers():
+    
     pass
 
 def main():
