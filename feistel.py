@@ -29,6 +29,15 @@ def permutation_Feistel(blocInput):
         blockOutput += str(blocInput[indice - 1])
     return(blockOutput)
 
+def decalage_circulaire(blocInput, n):
+    """Input  : str, int
+    Output : str
+    """
+    if n in [1, 2, 9, 16]:
+        return(blocInput[-1] + blocInput[:-1])
+    else:
+        return(blocInput[-2:] + blocInput[:-2])
+
 def permutation_PC1_Feistel(blocInput):
     """Input  : str
        Output : str, str
@@ -39,15 +48,6 @@ def permutation_PC1_Feistel(blocInput):
     for i in PC1D_FEISTEL:
         KD0 += blocInput[PC1G_FEISTEL]
     return(KG0, KD0)
-
-def decalage_circulaire(blocInput, n):
-    """Input  : str, int
-       Output : str
-    """
-    if n in [1, 2, 9, 16]:
-        return(blocInput[-1] + blocInput[:-1])
-    else:
-        return(blocInput[-2:] + blocInput[:-2])
 
 def permutation_PC2_Feistel(KG, KD):
     """Input  : str, str
@@ -71,25 +71,19 @@ def generation_clefs(K):
         KG, KD = decalage_circulaire(KG), decalage_circulaire(KD)
         clef.append(permutation_PC2_Feistel(KG, KD))
 
-def feistel(G, D, K, N, n=1):
+def feistel(D, K):
     """Input  : str, str
-       Output : str         --> F[N](D, K)
+       Output : str      --> F[N](D, K) = FO
     """
-    clef = generation_clefs(K)[n-1]
 
-    # Calcul de Dn+1
-    # 1) Feistel
-    DP = developpement_Feistel(D)                                               # Développement de D en D'
-    B = left_padding(bin(int(DP, 2) ^ int(clef, 2))[2:], "0", 48)                  # D' xor K = B
-    listeB = decoupage_string(B, 6)                                             # Découpage de B en 8 blocs de 6 bits
-    C = "".join([sbox_Feistel(bloc) for bloc in listeB])                        # Application des SBox aux blocs Bx
-    # 2) Xor avec G
-    DN = left_padding(bin(int(G, 2) ^ int(C, 2))[2:], "0", 32)                  # D' xor K = B
+    # Calcul de la sortie de Feistel (FO=Feistel Output)
+    DP = developpement_Feistel(D)                                                       # Développement de D en D'
+    B = left_padding(bin(int(DP, 2) ^ int(clef, 2))[2:], "0", 48)                       # D' xor K = B
+    listeB = decoupage_string(B, 6)                                                     # Découpage de B en 8 blocs de 6 bits
+    C = "".join([sbox_Feistel(bloc, SBOX_LIST[i]) for i, bloc in enumerate(listeB)])    # Application des SBox aux blocs Bx
+    FO = permutation_Feistel(C)
 
-    if n == N:
-        return(D, DN)
-    else:
-        feistel(D, DN, K, n=n+1)
+    return(FO)
 
 
 def main():
