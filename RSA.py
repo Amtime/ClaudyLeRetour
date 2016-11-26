@@ -12,13 +12,11 @@ P = 76733
 
 #       Calculer leur produit NP = Module de chiffrement
 NP = N*P
-print(NP)
 
-#       Calculer l'indicatrice d'Euler PhiN (Ici N-1 x P-1)
+#       Calculer l'indicatrice d'Euler PHI (Ici N-1 x P-1)
 PHI = (N-1)*(P-1)
-print(PHI)
 
-#       E : Choisir un entier naturel e premier avec PhiN
+#       E : Choisir un entier naturel e premier avec PhiN - Exposant de chiffrement
 #           TQ PGCD(E, P-1) = 1 & PGCD(E, Q-1) = 1
 #           TQ PGCD(E, PHI) = 1
 
@@ -26,17 +24,19 @@ tuple = (0, 0, 0)
 while tuple[0] != 1:
     E = random.randrange(N, P)
     tuple = identite_bezout(E, PHI)
-print(E)
 
-#       d : Inverse de e modulo PhiN (inferieur) - Exposant de chiffrement
-#
-#
+#       D : Inverse de E modulo PHI - Exposant de déchiffrement
+#       Calcul d'inverse avec algo Euclide Etendu
+
+http://www.bibmath.net/forums/viewtopic.php?id=2479
+
+
 # 2. Ecriture des clés publiques et privées dans un fichier
-#
+
 # 3. Chiffrement de message avec la clé publique
 #       C congru à M^e modulo n
 #       C est choisi strictement inférieur à n
-#
+
 # 4. Dechiffrement avec la clé privée
 #
 #
