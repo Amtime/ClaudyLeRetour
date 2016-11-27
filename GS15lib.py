@@ -10,6 +10,12 @@ def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
     else:
         return(identite_bezout(b, r, i=i+1, A=A, B=B, x1=x, y1=y, x0=x1, y0=y1))
 
+def inv_modulo(x, m):
+    """ Calcule y dans [[0, m-1]] tel que x*y % abs(m) = 1 """
+    (u, _, p) = identite_bezout(x, m)
+    if p == 1: return u % abs(m)
+    else: raise Exception("%s et %s ne sont pas premiers entre eux" % (x, m))
+
 def decoupage_string(string, n):
     """ Decoupe une chaîne de caractère en morceau de n caractères. /!\ Si ça ne tombe pas rond la fonction ignore le reste
         Ex : decoupage_string("abcde", 2) --> ["ab", "cd"] # Le "e" est oublié
@@ -27,10 +33,6 @@ def left_padding(string, char, length):
     while len(string) < length:
         output += char + output
     return(output)
-
-def nb_premiers():
-    
-    pass
 
 def main():
     pass

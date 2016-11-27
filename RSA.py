@@ -27,9 +27,8 @@ while tuple[0] != 1:
 
 #       D : Inverse de E modulo PHI - Exposant de déchiffrement
 #       Calcul d'inverse avec algo Euclide Etendu
-
-http://www.bibmath.net/forums/viewtopic.php?id=2479
-
+inverse = inv_modulo(E,PHI)
+print(inverse)
 
 # 2. Ecriture des clés publiques et privées dans un fichier
 
