@@ -25,21 +25,20 @@ COND=0
 liste_chif = []
 liste_dechif = []
 
-E = random.randint(1,PHI)
-while(COND!=1):
+
+# Virer les cond, changer pour un while-true-break
+while(True):
+    E = random.randint(1, PHI)
     if(E&1):
-        PGCDEPHI = identite_bezout(E, PHI)
-        COND = 1
-        if PGCDEPHI[0]==1:
-            COND = 1
+        if identite_bezout(E, PHI)[0]==1:
+            break
         else:
-            COND = 0
             E = random.randint(1, PHI)
     else:
-        COND = 0
         E = random.randint(1, PHI)
 
 print("\nClé publique de chiffrement (", N,",",E,")")
+# changer pour .format()
 
 #       D : Dechiffrement
 D = identite_bezout(E,PHI)[1]
