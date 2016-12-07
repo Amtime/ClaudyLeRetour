@@ -7,7 +7,8 @@ import random
         TODO Nb premiers : Tableau ou calcul
         OK Clé chiffrement/ déchiffrement
     2. Ecriture des clés vers fichier
-        TODO Export fichier
+        OK Export fichier
+        TODO Séparer le dossier
     3. Chiffrement utilisant clé publique
         OK
     4. Déchiffrement avec clé privée
@@ -26,8 +27,6 @@ COND=0
 liste_chif = []
 liste_dechif = []
 
-
-# Virer les cond, changer pour un while-true-break
 while(True):
     E = random.randint(1, PHI)
     if(E&1):
@@ -38,12 +37,10 @@ while(True):
     else:
         E = random.randint(1, PHI)
 
-print("\nClé publique de chiffrement (", N,",",E,")")
-# changer pour .format()
+print("Clé publique de chiffrement ( {}, {} )".format(N, E))
 
 #       D : Dechiffrement
 D = identite_bezout(E,PHI)[1]
-# vérifier condition X/Y
 print("\nClé privée : ", D)
 
 # 2. Ecriture des clés publiques et privées dans un fichier
@@ -78,7 +75,7 @@ for chif in liste_chif:
 print(''.join(liste_dechif))
 
 # 5. Generer une signature avec la clé privée
-#
+
 # 6. Vérifier une signature en utilisant la clé publique
-#
+
 # 7. RSA avec padding PKCS
