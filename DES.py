@@ -4,7 +4,7 @@ from CONST import *
 
 def DES(bloc, K):
     clef = generation_clefs(K)
-    G, D = decoupage_string(IP(bloc))   # Permutation initiale + découpage en 2 blocks de 32 bits
+    G, D = decoupage_string(IP(bloc), 32)   # Permutation initiale + découpage en 2 blocks de 32 bits
     for i in range(16):
         FO = feistel(D, clef[i])
         DNP = left_padding(bin(int(G, 2) ^ int(FO, 2))[2:], "0", 32)

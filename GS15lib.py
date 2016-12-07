@@ -1,4 +1,4 @@
-def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
+def identite_bezout(a, b, i=0, x0=1, y0=0, x1=0, y1=1):
     """Input  : int, int
        Output : int, int, int  --> PGCD(a, b), x, y
     """
@@ -8,7 +8,7 @@ def identite_bezout(a, b, i=0, A=0, B=0, x0=1, y0=0, x1=0, y1=1):
     if r == 0:
         return(b, x1, -y1)
     else:
-        return(identite_bezout(b, r, i=i+1, A=A, B=B, x1=x, y1=y, x0=x1, y0=y1))
+        return(identite_bezout(b, r, i=i+1, x1=x, y1=y, x0=x1, y0=y1))
 
 def decoupage_string(string, n):
     """ Decoupe une chaîne de caractère en morceau de n caractères. /!\ Si ça ne tombe pas rond la fonction ignore le reste
@@ -29,7 +29,6 @@ def left_padding(string, char, length):
     return(output)
 
 def nb_premiers():
-    
     pass
 
 def main():

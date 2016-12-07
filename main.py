@@ -13,7 +13,9 @@ Selectionner votre fonction de chiffrement
 """
 
 def chiffrement_VCES(plaintext, K):
-    listePlaintext = decoupage_string(plaintext)
+    listePlaintext = decoupage_string(plaintext, 64)
+    bloc = listePlaintext[0]
+    DES(bloc, K)
 
 def chiffrement_RSA():
     pass

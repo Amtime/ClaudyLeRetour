@@ -70,6 +70,7 @@ def generation_clefs(K):
     for i in range(1, 16):
         KG, KD = decalage_circulaire(KG), decalage_circulaire(KD)
         clef.append(permutation_PC2_Feistel(KG, KD))
+    return(clef)
 
 def feistel(D, K):
     """Input  : str, str
