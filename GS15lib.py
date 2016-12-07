@@ -28,12 +28,10 @@ def left_padding(string, char, length):
         output += char + output
     return(output)
 
-<<<<<<< HEAD
 def nb_premiers():
     pass
 
-=======
->>>>>>> origin/master
+
 def main():
     pass
 

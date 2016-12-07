@@ -42,6 +42,7 @@ print("\nClé publique de chiffrement (", N,",",E,")")
 
 #       D : Dechiffrement
 D = identite_bezout(E,PHI)[1]
+# vérifier condition X/Y
 print("\nClé privée : ", D)
 
 # 2. Ecriture des clés publiques et privées dans un fichier
