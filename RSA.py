@@ -19,6 +19,7 @@ import random
 
 N = 457
 P = 41
+
 NP = N*P
 PHI = (N-1)*(P-1)
 COND=0
