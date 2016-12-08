@@ -68,7 +68,7 @@ def generation_clefs(K):
     clef = [K]
     KG, KD = permutation_PC1_Feistel(K)
     for i in range(1, 16):
-        KG, KD = decalage_circulaire(KG), decalage_circulaire(KD)
+        KG, KD = decalage_circulaire(KG, i), decalage_circulaire(KD, i)
         clef.append(permutation_PC2_Feistel(KG, KD))
     return(clef)
 

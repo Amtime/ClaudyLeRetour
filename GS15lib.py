@@ -23,9 +23,9 @@ def decoupage_string(string, n):
 
 def left_padding(string, char, length):
     """Sert principalement à compléter les 0 à gauche des nombres en binaires"""
-    output = ""
-    while len(string) < length:
-        output += char + output
+    output = string
+    while len(output) < length:
+        output = char + output
     return(output)
 
 def nb_premiers():
