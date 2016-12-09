@@ -1,6 +1,7 @@
 import sys
 import feistel
 from GS15lib import decoupage_string
+from RSA import chiffrement_RSA
 
 
 messageAcceuil = """
@@ -12,12 +13,20 @@ Selectionner votre fonction de chiffrement
 ->5<- Vérifier une signature RSA
 """
 
+def acquisition_message():
+    # Taper la chaine de caracteres a chiffrer
+    # Fournir un ficher texte
+    pass
+
 def chiffrement_VCES(plaintext, K):
     listePlaintext = decoupage_string(plaintext, 64)
     bloc = listePlaintext[0]
     DES(bloc, K)
+    pass
 
 def chiffrement_RSA():
+    # Generation des cles, creation des fichiers
+    # Retourne un texte chiffré
     pass
 
 def signature_RSA():
