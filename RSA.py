@@ -48,8 +48,8 @@ def private_key(PHI=int):
         fichier.write(str(D))
 
     # PKCS (p, q, Dp, Dq, q_inv)
-    p = 35
-    q = 54 # Comment choisir P & Q ?
+    p = random.randint(1, 100)
+    q = random.randint(1, 100)
     q_inv = identite_bezout(q,p)[1]
     Dp = D % (p-1)
     Dq = D % (q-1)
@@ -59,11 +59,8 @@ def private_key(PHI=int):
     return
 
 def generation_keys():
-    # TODO Tableau Nombres premiers
-    random.randint(1, primes.length)
-    n = 457
-    p = 41
-    module = n*p
+    n = PRIMES[random.randint(0, len(PRIMES))]
+    p = PRIMES[random.randint(0, len(PRIMES))]
     PHI = (n-1)*(p-1)
 
     # Appel sous-fonction de clé publique
@@ -99,8 +96,8 @@ def dechiffrement_RSA(string):
         q_inv = fichier.readlines()[4]
 
     for c in liste_chif:
-        Mp = pow(c, Dp)
-        Mq = pow(c, Dq)
+        Mp = pow(c, Dp) % p
+        Mq = pow(c, Dq) % q
         mb = (Mp - Mq) * q
         clair = chr(mb * q_inv + Mq)
         liste_dechif.append(clair)
