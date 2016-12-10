@@ -30,36 +30,42 @@ def public_key(N=int, PHI=int):
                 E = random.randint(1, PHI)
         else:
             E = random.randint(1, PHI)
-    print("Clé publique de chiffrement ( {}, {} )".format(N, E))
 
-    # Ecriture des clés publiques et privées dans un fichier
-    # TODO Ecrire dans dossier de clés
     with open("Keys/public_key.txt", "w") as fichier:
         fichier.write(str(N) + "\n" + str(E))
     return
 
 def private_key(PHI=int):
-    # Lecture du fichier de clé publique - Deuxieme ligne
+    # Lecture de la clé publique
     with open('Keys/public_key.txt') as fichier:
         E = fichier.readlines()[1]
 
     D = identite_bezout(int(E),PHI)[1]
 
+    # Ecriture de la clé privée
     with open("Keys/private_key.txt", "w") as fichier:
         fichier.write(str(D))
 
-    # Clé secrete : (p, q, Dp, Dq, q_inv)
+    # PKCS (p, q, Dp, Dq, q_inv)
     p = 35
-    q = 54
+    q = 54 # Comment choisir P & Q ?
     q_inv = identite_bezout(q,p)[1]
     Dp = D % (p-1)
     Dq = D % (q-1)
 
-    with open("Keys/private_key.txt", "w") as fichier:
+    with open("Keys/private_key_PKCS.txt", "w") as fichier:
+        """ Fichier de cle privee :
+        + p
+        + q
+        + Dp
+        + Dq
+        + q_inv
+        """
         fichier.write(str(p) + "\n" + str(q) + "\n" + str(Dp) + "\n" + str(Dq) + "\n" + str(q_inv))
     return
 
 def generation_keys():
+    # TODO Tableau Nombres premiers
     n = 457
     p = 41
     module = n*p
@@ -70,16 +76,7 @@ def generation_keys():
     # Appel sous-fonction clé privée
     private_key(PHI)
 
-
-
 def chiffrement_RSA(string):
-    """ Chiffrement de string avec clé publique
-        Input  :
-        Output :
-        """
-    # alternative : open('message.txt', 'r') as message
-    #message = input('\nEntrez le mot à chiffrer : ')
-
     for carac in string:
         asciicarac = ord(carac)
         carac_pow = pow(asciicarac, E)
@@ -94,25 +91,28 @@ def dechiffrement_RSA(string):
         Output : str - clair
     """
 
-    # TODO PKCS
-    # Au lieu de m = c^d % NP
-    # Mp = c^Dp % p
-    # Mq = c^Dq % q
-    # m congru à Mp mod P et à Mq mod Q
-    for chif in liste_chif:
-        ascii = pow(chif, D) % NP
-        dechif = chr(ascii)
-        liste_dechif.append(dechif)
+    # Lecture des variables de clé secrète
+    with open('Keys/public_key_PKCS.txt') as fichier:
+        p = fichier.readlines()[0]
+        q = fichier.readlines()[1]
+        Dp = fichier.readlines()[2]
+        Dq = fichier.readlines()[3]
+        q_inv = fichier.readlines()[4]
+
+    for c in liste_chif:
+        Mp = pow(c, Dp)
+        Mq = pow(c, Dq)
+        mb = (Mp - Mq) * q
+        clair = chr(mb * q_inv + Mq)
+        liste_dechif.append(clair)
 
     message_clair = ''.join(liste_dechif)
-    return(message-clair)
+    return(message_clair)
 
 def signature_RSA():
-
     pass
 
 def verif_signature_RSA():
-
     pass
 
 def main():
