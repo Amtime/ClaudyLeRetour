@@ -18,23 +18,6 @@ def acquisition_message():
     # Fournir un ficher texte
     pass
 
-def chiffrement_VCES(plaintext, K):
-    listePlaintext = decoupage_string(plaintext, 64)
-    bloc = listePlaintext[0]
-    DES(bloc, K)
-    pass
-
-def chiffrement_RSA():
-    pass
-
-def signature_RSA():
-    pass
-
-def dechiffrement_RSA():
-    pass
-
-def verif_signature_RSA():
-    pass
 
 def main():
     choix = ""

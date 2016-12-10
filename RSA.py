@@ -71,7 +71,6 @@ def chiffrement_RSA(string):
         carac_crypt = carac_pow % NP
         liste_chif.append(carac_crypt)
     print(liste_chif)
-    pass
 
 def dechiffrement_RSA(string):
     """ Dechiffre un message RSA, lit la valeur de clé dans le fichier
@@ -79,12 +78,8 @@ def dechiffrement_RSA(string):
         Output : str - clair
     """
 
-    with open('Keys/public_key_PKCS.txt') as fichier:
-        p = fichier.readlines()[0]
-        q = fichier.readlines()[1]
-        Dp = fichier.readlines()[2]
-        Dq = fichier.readlines()[3]
-        q_inv = fichier.readlines()[4]
+    with open('Keys/private_key_PKCS.txt') as fichier:
+        p, q, Dp, Dq, q_inv  = fichier.readlines()
 
     for c in liste_chif:
         Mp = pow(c, Dp) % p
@@ -105,6 +100,7 @@ def verif_signature_RSA():
 
 def main():
     generation_keys()
+    dechiffrement_RSA('lol')
 
 if __name__ == "__main__":
     main()
