@@ -19,18 +19,7 @@ import random
 liste_chif = []
 liste_dechif = []
 
-def init_parametres():
-    # TODO Meilleur choix de nombres premiers
-    n = 457
-    p = 41
-    global NP
-    NP = N*P
-    phi = (N-1)*(P-1)
-
-    # TODO Existence dossier de clés
-    return
-
-def gen_public_key():
+def public_key(N=int, PHI=int):
     while(True):
         global E
         E = random.randint(1, PHI)
@@ -45,51 +34,78 @@ def gen_public_key():
 
     # Ecriture des clés publiques et privées dans un fichier
     # TODO Ecrire dans dossier de clés
-    with open("public_key.txt", "w") as fichier:
+    with open("Keys/public_key.txt", "w") as fichier:
         fichier.write(str(N) + "\n" + str(E))
     return
 
-def gen_private_key():
-    D = identite_bezout(E,PHI)[1]
-    print("\nClé privée : ", D)
+def private_key(PHI=int):
+    # Lecture du fichier de clé publique - Deuxieme ligne
+    with open('Keys/public_key.txt') as fichier:
+        E = fichier.readlines()[1]
 
-    # TODO Ecrire dans dossier de clés
-    with open("private_key.txt", "w") as fichier:
+    D = identite_bezout(int(E),PHI)[1]
+
+    with open("Keys/private_key.txt", "w") as fichier:
         fichier.write(str(D))
+
+    # Clé secrete : (p, q, Dp, Dq, q_inv)
+    p = 35
+    q = 54
+    q_inv = identite_bezout(q,p)[1]
+    Dp = D % (p-1)
+    Dq = D % (q-1)
+
+    with open("Keys/private_key.txt", "w") as fichier:
+        fichier.write(str(p) + "\n" + str(q) + "\n" + str(Dp) + "\n" + str(Dq) + "\n" + str(q_inv))
     return
+
+def generation_keys():
+    n = 457
+    p = 41
+    module = n*p
+    PHI = (n-1)*(p-1)
+
+    # Appel sous-fonction de clé publique
+    public_key(n, PHI)
+    # Appel sous-fonction clé privée
+    private_key(PHI)
+
 
 
 def chiffrement_RSA(string):
-    """ Decoupe une chaîne de caractère en morceau de n caractères. /!\ Si ça ne tombe pas rond la fonction ignore le reste
-        Ex : decoupage_string("abcde", 2) --> ["ab", "cd"] # Le "e" est oublié
+    """ Chiffrement de string avec clé publique
         Input  :
         Output :
         """
     # alternative : open('message.txt', 'r') as message
-    message = input('\nEntrez le mot à chiffrer : ')
+    #message = input('\nEntrez le mot à chiffrer : ')
 
-    # Chiffrement de message avec la clé publique
-    for carac in message:
+    for carac in string:
         asciicarac = ord(carac)
         carac_pow = pow(asciicarac, E)
         carac_crypt = carac_pow % NP
         liste_chif.append(carac_crypt)
     print(liste_chif)
+    return(liste_chif)
 
-    pass
-
-def dechiffrement_RSA():
+def dechiffrement_RSA(string):
     """ Dechiffre un message RSA, lit la valeur de clé dans le fichier
         Input  : str - chiffré
         Output : str - clair
     """
+
+    # TODO PKCS
+    # Au lieu de m = c^d % NP
+    # Mp = c^Dp % p
+    # Mq = c^Dq % q
+    # m congru à Mp mod P et à Mq mod Q
     for chif in liste_chif:
         ascii = pow(chif, D) % NP
         dechif = chr(ascii)
         liste_dechif.append(dechif)
 
-    print(''.join(liste_dechif))
-    pass
+    message_clair = ''.join(liste_dechif)
+    return(message-clair)
 
 def signature_RSA():
 
@@ -98,3 +114,9 @@ def signature_RSA():
 def verif_signature_RSA():
 
     pass
+
+def main():
+    generation_keys()
+
+if __name__ == "__main__":
+    main()

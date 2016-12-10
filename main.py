@@ -25,8 +25,6 @@ def chiffrement_VCES(plaintext, K):
     pass
 
 def chiffrement_RSA():
-    # Generation des cles, creation des fichiers
-    # Retourne un texte chiffré
     pass
 
 def signature_RSA():
