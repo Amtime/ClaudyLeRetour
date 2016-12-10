@@ -3,15 +3,9 @@ from CONST import *
 import random
 
 """ 1. Generation des cles
-        TODO Nb premiers : Tableau ou calcul
-        OK Clé chiffrement/ déchiffrement
     2. Ecriture des clés vers fichier
-        OK Export fichier
-        TODO Séparer le dossier
     3. Chiffrement utilisant clé publique
-        OK
     4. Déchiffrement avec clé privée
-        OK
     5. Générer une signature avec clé privée
     6. Vérifier signature avec clé publique
     7. RSA avec padding PKCS
@@ -63,13 +57,11 @@ def generation_keys():
     p = PRIMES[random.randint(0, len(PRIMES))]
     PHI = (n-1)*(p-1)
 
-    # Appel sous-fonction de clé publique
     public_key(n, PHI)
-    # Appel sous-fonction clé privée
     private_key(PHI)
 
 def chiffrement_RSA(string):
-    # Lecture de la clé publique
+    # Lecture du fichier clé publique
     with open('Keys/public_key.txt') as fichier:
         E = fichier.readlines()[1]
 
@@ -87,7 +79,6 @@ def dechiffrement_RSA(string):
         Output : str - clair
     """
 
-    # Lecture des variables de clé secrète
     with open('Keys/public_key_PKCS.txt') as fichier:
         p = fichier.readlines()[0]
         q = fichier.readlines()[1]
