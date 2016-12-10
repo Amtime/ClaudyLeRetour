@@ -1,4 +1,5 @@
 from GS15lib import *
+from CONST import *
 import random
 
 """ 1. Generation des cles
@@ -54,18 +55,12 @@ def private_key(PHI=int):
     Dq = D % (q-1)
 
     with open("Keys/private_key_PKCS.txt", "w") as fichier:
-        """ Fichier de cle privee :
-        + p
-        + q
-        + Dp
-        + Dq
-        + q_inv
-        """
         fichier.write(str(p) + "\n" + str(q) + "\n" + str(Dp) + "\n" + str(Dq) + "\n" + str(q_inv))
     return
 
 def generation_keys():
     # TODO Tableau Nombres premiers
+    random.randint(1, primes.length)
     n = 457
     p = 41
     module = n*p
@@ -77,13 +72,17 @@ def generation_keys():
     private_key(PHI)
 
 def chiffrement_RSA(string):
+    # Lecture de la clé publique
+    with open('Keys/public_key.txt') as fichier:
+        E = fichier.readlines()[1]
+
     for carac in string:
         asciicarac = ord(carac)
         carac_pow = pow(asciicarac, E)
         carac_crypt = carac_pow % NP
         liste_chif.append(carac_crypt)
     print(liste_chif)
-    return(liste_chif)
+    pass
 
 def dechiffrement_RSA(string):
     """ Dechiffre un message RSA, lit la valeur de clé dans le fichier
@@ -107,7 +106,8 @@ def dechiffrement_RSA(string):
         liste_dechif.append(clair)
 
     message_clair = ''.join(liste_dechif)
-    return(message_clair)
+    print(message_clair)
+    pass
 
 def signature_RSA():
     pass
