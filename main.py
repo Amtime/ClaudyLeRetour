@@ -1,7 +1,7 @@
 import sys
 import feistel
 from GS15lib import decoupage_string
-from RSA import chiffrement_RSA
+from RSA import *
 
 
 messageAcceuil = """
@@ -9,14 +9,15 @@ Selectionner votre fonction de chiffrement
 ->1<- Chiffrement symétrique VCES
 ->2<- Chiffrement RSA avec module multiple
 ->3<- Signature RSA avec module multiple
-->4<- Déciffrement RSA
+->4<- Déchiffrement RSA
 ->5<- Vérifier une signature RSA
 """
 
 def acquisition_message():
     # Taper la chaine de caracteres a chiffrer
+    message = str(input("Message : "))
     # Fournir un ficher texte
-    pass
+    return(message)
 
 
 def main():
@@ -30,7 +31,9 @@ def main():
     if choix == 1:
         chiffrement_vces()
     elif choix == 2:
-        chiffrement_RSA()
+        generation_keys()
+        message = acquisition_message()
+        chiffrement_RSA(message)
     elif choix == 3:
         signature_RSA()
     elif choix == 4:

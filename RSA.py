@@ -42,8 +42,8 @@ def private_key(PHI=int):
         fichier.write(str(D))
 
     # PKCS (p, q, Dp, Dq, q_inv)
-    p = random.randint(1, 100)
-    q = random.randint(1, 100)
+    p = random.randint(2, 100)
+    q = random.randint(2, 100)
     q_inv = identite_bezout(q,p)[1]
     Dp = D % (p-1)
     Dq = D % (q-1)
@@ -55,6 +55,8 @@ def private_key(PHI=int):
 def generation_keys():
     n = PRIMES[random.randint(0, len(PRIMES))]
     p = PRIMES[random.randint(0, len(PRIMES))]
+    global NP
+    NP = n * p
     PHI = (n-1)*(p-1)
 
     public_key(n, PHI)
@@ -63,7 +65,7 @@ def generation_keys():
 def chiffrement_RSA(string):
     # Lecture du fichier clé publique
     with open('Keys/public_key.txt') as fichier:
-        E = fichier.readlines()[1]
+        E = int(fichier.readlines()[1])
 
     for carac in string:
         asciicarac = ord(carac)
