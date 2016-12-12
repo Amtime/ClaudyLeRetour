@@ -94,13 +94,13 @@ def dechiffrement_RSA(liste_chif):
         Mp = pow(c, Dp) % p
         Mq = pow(c, Dq) % q
         mb = (Mp - Mq) * q
-        # TODO diapo 58
-        clair =
-        #clair = (mb * q_inv + Mq)
-        print(chr(clair))
+        clair1 = (Mp*q*q_inv)+(Mq*p*p_inv)
+        clair2 = (mb*q_inv)+Mq
+        print(clair1, clair2)
+        #print(chr(clair))
 
     message_clair = ''.join(liste_dechif)
-    print(message_clair)
+    #print(message_clair)
     pass
 
 def signature_RSA():
@@ -110,8 +110,7 @@ def verif_signature_RSA():
     pass
 
 def main():
-    generation_keys()
-    dechiffrement_RSA('lol')
+    pass
 
 if __name__ == "__main__":
     main()
