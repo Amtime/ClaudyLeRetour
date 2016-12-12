@@ -42,8 +42,8 @@ def private_key(PHI=int):
         fichier.write(str(D))
 
     # PKCS (p, q, Dp, Dq, q_inv)
-    p = random.randint(2, 100)
-    q = random.randint(2, 100)
+    p = random.randint(2, 50)
+    q = random.randint(2, 50)
     q_inv = identite_bezout(q,p)[1]
     Dp = D % (p-1)
     Dq = D % (q-1)
@@ -72,9 +72,9 @@ def chiffrement_RSA(string):
         carac_pow = pow(asciicarac, E)
         carac_crypt = carac_pow % NP
         liste_chif.append(carac_crypt)
-    print(liste_chif)
+    return(liste_chif)
 
-def dechiffrement_RSA(string):
+def dechiffrement_RSA(liste_chif):
     """ Dechiffre un message RSA, lit la valeur de clé dans le fichier
         Input  : str - chiffré
         Output : str - clair
@@ -82,13 +82,22 @@ def dechiffrement_RSA(string):
 
     with open('Keys/private_key_PKCS.txt') as fichier:
         p, q, Dp, Dq, q_inv  = fichier.readlines()
+    p = int(p)
+    q = int(q)
+    Dp = int(Dp)
+    Dq = int(Dq)
+    q_inv = int(q_inv)
+    p_inv = identite_bezout(p,q)[1]
+    pq = p * q
 
     for c in liste_chif:
         Mp = pow(c, Dp) % p
         Mq = pow(c, Dq) % q
         mb = (Mp - Mq) * q
-        clair = chr(mb * q_inv + Mq)
-        liste_dechif.append(clair)
+        # TODO diapo 58
+        clair =
+        #clair = (mb * q_inv + Mq)
+        print(chr(clair))
 
     message_clair = ''.join(liste_dechif)
     print(message_clair)
