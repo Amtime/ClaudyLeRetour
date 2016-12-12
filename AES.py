@@ -1,45 +1,58 @@
 from GS15lib import decoupage_string, left_padding
-from CONST import SUBBYTE_BOX, RCON, SHIFT_ROW_BOX, GALOIS_MULTIPLICATION_2, GALOIS_MULTIPLICATION_3
+from CONST import SUBBYTE_BOX, INVSUBBYTE_BOX,  RCON, \
+                    SHIFT_ROW_BOX, INVSHHIFT_ROW_BOX, \
+                    GALOIS_MULTIPLICATION_2, GALOIS_MULTIPLICATION_3, \
+                    GALOIS_MULTIPLICATION_9, GALOIS_MULTIPLICATION_11,\
+                    GALOIS_MULTIPLICATION_13, GALOIS_MULTIPLICATION_14
 
 
 def AES_encryption(bloc, key, rondes):
     """ Input  : [int], int, [int]
         Output : [int]
     """
-
-    print("bloc de base        : {}".format([left_padding(hex(i)[2:], "0", 2) for i in bloc]))
     roundKeys = key_expansion(key); r = 0
-    print("roundKey            : {}".format([left_padding(hex(i)[2:], "0", 2) for i in roundKeys[r]]))
     state = roundKey_add(bloc, roundKeys[r])
-    print("Premier addroundkey : {}".format([left_padding(hex(i)[2:], "0", 2) for i in state]))
-    while r < rondes:
+    while r < rondes - 1:
         r += 1
-        print(r)
         state = transformation_application(state, SUBBYTE_BOX)
-        print("SUBBYTE_BOX         : {}".format([left_padding(hex(i)[2:], "0", 2) for i in state]))
-        state = shift_row(state)
-        print("shift               : {}".format([left_padding(hex(i)[2:], "0", 2) for i in state]))
+        state = shift_row(state, SHIFT_ROW_BOX)
         state = mix_columns(state)
-        print("mix columns         : {}".format([left_padding(hex(i)[2:], "0", 2) for i in state]))
-        print("roundKey            : {}".format([left_padding(hex(i)[2:], "0", 2) for i in roundKeys[r]]))
         state = roundKey_add(state, roundKeys[r])
-        print("addroundkey finbouc : {}".format([left_padding(hex(i)[2:], "0", 2) for i in state]))
 
     state = transformation_application(state, SUBBYTE_BOX)
-    state = shift_row(state)
-    state = roundKey_add(state, roundKeys[r])
+    state = shift_row(state, SHIFT_ROW_BOX)
+    state = roundKey_add(state, roundKeys[r+1])
     return(state)
 
-def shift_row(bloc):
+def AES_decryption(cipherbloc, key, rondes):
+    """ Input  : [int], int, [int]
+        Output : [int]
+    """
+    roundKeys = key_expansion(key); r = 0
+    state = roundKey_add(cipherbloc, roundKeys[rondes - r])
+    while r < rondes - 1:
+        r += 1
+        state = shift_row(state, INVSHHIFT_ROW_BOX)
+        state = transformation_application(state, INVSUBBYTE_BOX)
+        state = roundKey_add(state, roundKeys[rondes - r])
+        state = inv_mix_columns(state)
+
+    state = shift_row(state, INVSHHIFT_ROW_BOX)
+    state = transformation_application(state, INVSUBBYTE_BOX)
+    state = roundKey_add(state, roundKeys[rondes - r - 1])
+    return(state)
+
+def shift_row(bloc, OPERATION):
     """ Input  : [int] - 16 octets
         Output : [int] - 16 octets
     """
     output = [0] * 16
     for i in range(4):
         for j in range(4):
-            i1, i2 = SHIFT_ROW_BOX[i][j]
+            i1, i2 = OPERATION[i][j]
             output[4 * j + i] = bloc[4 * i2 + i1]
     return(output)
+
 
 def roundKey_add(bloc, roundKey):
     """ Input  : [int] - 16 octets, [int] - 16 octets
@@ -51,6 +64,25 @@ def roundKey_add(bloc, roundKey):
     for i in range(len(bloc)):
         output.append(bloc[i]^roundKey[i])
     return(output)
+
+def inv_mix_columns(bloc):
+    """ input  : [int] - 16 octets
+        output : [int] - 16 octets
+    """
+    output = []
+    # Application du mixage des colonnes sur 4 blocs de 8 octets
+    for i in range(4):
+        # Boucle servant à créer le décalage entre chaque ligne et donc de
+        # réaliser la fonction MixColumns d'AES colonne par colonne
+        for shift in range(4):
+            # XOR entre les 4 éléments de la colonnes
+            output.append(\
+            transformation_application(bloc[4 * i + (shift + 0) % 4], GALOIS_MULTIPLICATION_14)^\
+            transformation_application(bloc[4 * i + (shift + 1) % 4], GALOIS_MULTIPLICATION_11)^\
+            transformation_application(bloc[4 * i + (shift + 2) % 4], GALOIS_MULTIPLICATION_13)^\
+            transformation_application(bloc[4 * i + (shift + 3) % 4], GALOIS_MULTIPLICATION_9))
+    return(output)
+
 
 def mix_columns(bloc):
     """ input  : [int] - 16 octets
@@ -175,7 +207,8 @@ def main():
     key = "2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c"
     hexa = [int(i, 16) for i in hexa.split(" ")]
     key = [int(i, 16) for i in key.split(" ")]
-    AES_encryption(hexa, key, 2)
+    cipher = AES_encryption(hexa, key, 10)
+    plain = AES_decryption(cipher, key, 10)
 
 if __name__ == "__main__":
     main()
