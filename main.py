@@ -34,7 +34,7 @@ def main():
         message = acquisition_message()
         listechif = chiffrement_RSA(message)
         print(listechif)
-        #dechiffrement_RSA(listechif)
+        dechiffrement_RSA(listechif)
     elif choix == 3:
         signature_RSA()
     elif choix == 4:
