@@ -1,5 +1,6 @@
 from GS15lib import *
 from CONST import *
+
 import random
 
 """ 1. Generation des cles
@@ -14,63 +15,72 @@ import random
 liste_chif = []
 liste_dechif = []
 
-def public_key(N=int, PHI=int):
-    while(True):
-        global E
-        E = random.randint(1, PHI)
-        if(E&1):
-            if identite_bezout(E, PHI)[0]==1:
-                break
-            else:
-                E = random.randint(1, PHI)
-        else:
-            E = random.randint(1, PHI)
+def gen_keys():
+    """
+    Génère les fichiers de clé :
+        - public_key.txt avec N, E
+        - private_key_PKCS.txt avec p, q, Dp, Dq
+    """
 
-    with open("Keys/public_key.txt", "w") as fichier:
-        fichier.write(str(N) + "\n" + str(E))
-    return
+    # p et q :
+    # - Premiers
+    # - PGCD(p-1, q-1) = 2
+    test_pq_trc = 1
+    while(test_pq_trc != 2):
+        p = PRIMES[random.randint(0, len(PRIMES))]
+        q = PRIMES[random.randint(0, len(PRIMES))]
+        test_pq_trc = identite_bezout(p-1,q-1)[0]
+        print(test_pq_trc)
 
-def private_key(PHI=int):
-    # Lecture de la clé publique
-    with open('Keys/public_key.txt') as fichier:
-        E = fichier.readlines()[1]
+    # Choix de Dp et Dq entiers aléatoires TQ :
+    #   - PGCD(Dp, p−1) = 1
+    #   - PGCD(Dq, p−1) = 1
+    #   - Dp congru à Dq modulo 2
+    test_trc = 0
+    while(test_trc < 2):
+        test_trc = 0
+        Dq = random.randint(2, 200)
+        Dp = 2*random.randint(2, 200) + Dq
+        if(identite_bezout(Dp, p-1)[0]):
+            test_trc += 1
+        if(identite_bezout(Dp, p - 1)[0]):
+            test_trc += 1
+        print("ESSAI")
 
-    D = identite_bezout(int(E),PHI)[1]
 
-    # Ecriture de la clé privée
-    with open("Keys/private_key.txt", "w") as fichier:
-        fichier.write(str(D))
+    # Calcul de la clé D à partir des parametres PKCS
+    #   D == Dp mod (p-1)
+    #   D == Dq mod (q-1)
+    #    > Equation reste chinois
 
-    # PKCS (p, q, Dp, Dq, q_inv)
-    p = random.randint(2, 50)
-    q = random.randint(2, 50)
-    q_inv = identite_bezout(q,p)[1]
-    Dp = D % (p-1)
-    Dq = D % (q-1)
+    m = (p-1, q-1, 1)
+    a = (Dp, Dq, 1)
+    # Calcul de la clé privée
+    D = reste_chinois(m, a)
 
-    with open("Keys/private_key_PKCS.txt", "w") as fichier:
-        fichier.write(str(p) + "\n" + str(q) + "\n" + str(Dp) + "\n" + str(Dq) + "\n" + str(q_inv))
-    return
+    # Calcul de la clé publique / Chiffrement
+    N = p * q
+    E = identite_bezout(int(D),N)[1]
 
-def generation_keys():
-    n = PRIMES[random.randint(0, len(PRIMES))]
-    p = PRIMES[random.randint(0, len(PRIMES))]
-    global NP
-    NP = n * p
-    PHI = (n-1)*(p-1)
+    # W:Clé publique : N, E
+    # W:Clé privée : p, q, Dp, Dq
+    with open("Keys/private_key_PKCS.txt", "w") as f:
+        f.write(str(p) + "\n" + str(q) + "\n" + str(Dp) + "\n" + str(Dq))
 
-    public_key(n, PHI)
-    private_key(PHI)
+    with open("Keys/public_key.txt", "w") as f:
+        f.write(str(N) + "\n" + str(E))
 
 def chiffrement_RSA(string):
     # Lecture du fichier clé publique
     with open('Keys/public_key.txt') as fichier:
-        E = int(fichier.readlines()[1])
+        E, N = fichier.readlines()
+    E = int(E)
+    N = int(N)
 
     for carac in string:
         asciicarac = ord(carac)
         carac_pow = pow(asciicarac, E)
-        carac_crypt = carac_pow % NP
+        carac_crypt = carac_pow % N
         liste_chif.append(carac_crypt)
     return(liste_chif)
 

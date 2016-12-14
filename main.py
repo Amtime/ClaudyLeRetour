@@ -30,10 +30,11 @@ def main():
     if choix == 1:
         chiffrement_vces()
     elif choix == 2:
-        generation_keys()
+        gen_keys()
         message = acquisition_message()
         listechif = chiffrement_RSA(message)
-        dechiffrement_RSA(listechif)
+        print(listechif)
+        #dechiffrement_RSA(listechif)
     elif choix == 3:
         signature_RSA()
     elif choix == 4:
