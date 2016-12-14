@@ -1,6 +1,5 @@
 from GS15lib import *
 from CONST import *
-
 import random
 
 """ 1. Generation des cles
@@ -49,16 +48,13 @@ def gen_keys():
         - public_key.txt avec N, E
         - private_key_PKCS.txt avec p, q, Dp, Dq
     """
-    n1 = 19
-        #PRIMES[random.randint(0, len(PRIMES))]
-    n2 = 43
-        #PRIMES[random.randint(0, len(PRIMES))]
+    n1 = 19 #PRIMES[random.randint(0, len(PRIMES))]
+    n2 = 43 #PRIMES[random.randint(0, len(PRIMES))]
     N = n1 * n2
-    PHI = (n1 - 1) * (n2 - 1)
+    PHI = (n1-1)*(n2-1)
 
     public_key(N, PHI)
     private_key(n1, n2, PHI)
-
     # p et q :
     # - Premiers
     # - PGCD(p-1, q-1) = 2
