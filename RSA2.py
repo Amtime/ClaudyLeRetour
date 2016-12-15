@@ -3,10 +3,11 @@ from CONST import PRIMES
 import random
 
 
-def cles():
+def gen_cles():
     p = PRIMES[random.randint(0, len(PRIMES))]
     q = PRIMES[random.randint(0, len(PRIMES))]
     # TODO Generation nb premiers
+
     q_inv = 1
     while (q*q_inv)%p != 1:
         p = PRIMES[random.randint(0, len(PRIMES))]
@@ -31,10 +32,15 @@ def cles():
     dp = d % (p - 1)
     dq = d % (q - 1)
 
-    return e, d, n, dp, dq, p, q, q_inv
+    with open("Keys/private_key_PKCS.txt", "w") as f:
+        f.write(str(d) + "\n" + str(n) + "\n" + str(p) + "\n" + str(q) + "\n" + str(q_inv) + "\n" + str(dp) + "\n" + str(dq))
+    with open("Keys/public_key.txt", "w") as f:
+        f.write(str(e) + "\n" + str(n))
 
 
-def chiffrement(message, e, n):
+def chiffrement(message, cle_publique):
+    e, n = cle_publique
+    print(message)
     liste_ascii = []
     for carac in message:
         asciicarac = ord(carac)
@@ -50,7 +56,8 @@ def chiffrement(message, e, n):
     return(liste_chif)
 
 
-def dechiffrement(cypher, d, n, dp, dq, p, q, q_inv):
+def dechiffrement(cypher, cle_secrete):
+    d, n, p, q, q_inv, dp, dq = cle_secrete
     # Dechiffrement par exponentiation
     liste_dechifree1 = []
     for c in cypher:
@@ -70,11 +77,23 @@ def dechiffrement(cypher, d, n, dp, dq, p, q, q_inv):
 
 
 def main():
-    e, d, n, dp, dq, p, q, q_inv = cles()
-    cypher = chiffrement("Chaine de caractère genre archi longue", e, n)
+    # 1. Generation des clés
+    gen_cles()
+
+    # 2. Lecture de clés
+    with open('Keys/private_key_PKCS.txt') as f:
+        d, n, p, q, q_inv, dp, dq = f.readlines()
+    cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
+    with open('Keys/public_key.txt') as f:
+        e, n = f.readlines()
+    cle_publique = int(e), int(n)
+
+    # 3. Chiffrement
+    cypher = chiffrement("CRYPTO", cle_publique)
     print("liste chifree :          ", cypher)
-    dechiffrement(cypher, d, n, dp, dq, p, q, q_inv)
-    # liste chiffree cypher , d , n , dp , dq , p , q , q_inv
+
+    # 4. Dechiffrement
+    dechiffrement(cypher, cle_secrete)
 
 
 if __name__ == "__main__":

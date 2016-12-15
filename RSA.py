@@ -55,9 +55,6 @@ def gen_keys():
 
     public_key(N, phi)
     private_key(n1, n2, phi)
-    # p et q :
-    # - Premiers
-    # - PGCD(p-1, q-1) = 2
 
 def chiffrement_RSA(string):
     # Lecture du fichier clé publique
