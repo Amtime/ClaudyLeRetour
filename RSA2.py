@@ -1,11 +1,12 @@
-from GS15lib import *
-from CONST import *
+from GS15lib import identite_bezout
+from CONST import PRIMES
 import random
 
 
 def cles():
     p = PRIMES[random.randint(0, len(PRIMES))]
     q = PRIMES[random.randint(0, len(PRIMES))]
+    # TODO Generer premiers
     n = p*q
     q_inv = 1
     phi = (p-1)*(q-1)
@@ -14,6 +15,8 @@ def cles():
         p = PRIMES[random.randint(0, len(PRIMES))]
         q = PRIMES[random.randint(0, len(PRIMES))]
         q_inv = identite_bezout(q,p)[1]
+        # TODO Condition ternaire
+        print(q_inv)
 
     while (True):
         e = random.randint(1, phi)
@@ -38,7 +41,6 @@ def chiffrement(message, e, n):
         asciicarac = ord(carac)
         liste_ascii.append(asciicarac)
 
-    liste_ascii = [71, 83, 49, 53]
     print("liste convertie ASCII : ", liste_ascii)
     liste_chif = []
     for ascii in liste_ascii:
@@ -50,12 +52,14 @@ def chiffrement(message, e, n):
 
 
 def dechiffrement(cypher, d, n, dp, dq, p, q, q_inv):
+    # Dechiffrement par exponentiation
     liste_clair1 = []
     for c in cypher:
         clair = pow(c, d) % n
         liste_clair1.append(clair)
     print("liste clair1 : ", liste_clair1)
 
+    # Dechiffrement avec le TRC
     liste_clair2 = []
     for c in cypher:
         mp = pow(c, dp) % p
@@ -71,7 +75,7 @@ def main():
     cypher = chiffrement("CRYPTO", e, n)
     print("liste chifree :          ", cypher)
     dechiffrement(cypher, 11787, 17947, 91, 87, 137, 131, 114)
-    # cypher , d , n , dp , dq , p , q , q_inv
+    # liste chiffree cypher , d , n , dp , dq , p , q , q_inv
 
 
 if __name__ == "__main__":
