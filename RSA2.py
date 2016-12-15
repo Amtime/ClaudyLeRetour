@@ -7,7 +7,14 @@ def cles():
     p = PRIMES[random.randint(0, len(PRIMES))]
     q = PRIMES[random.randint(0, len(PRIMES))]
     n = p*q
-    phi = (p - 1) * (q - 1)
+    q_inv = 1
+    phi = (p-1)*(q-1)
+
+    while (q*q_inv)%p != 1:
+        p = PRIMES[random.randint(0, len(PRIMES))]
+        q = PRIMES[random.randint(0, len(PRIMES))]
+        q_inv = identite_bezout(q,p)[1]
+
     while (True):
         e = random.randint(1, phi)
         d = identite_bezout(e, phi)[1]
@@ -22,7 +29,7 @@ def cles():
     dp = d % (p - 1)
     dq = d % (q - 1)
 
-    return e, d, n, dp, dq
+    return e, d, n, dp, dq, p, q, q_inv
 
 
 def chiffrement(message, e, n):
@@ -42,7 +49,7 @@ def chiffrement(message, e, n):
     return(liste_chif)
 
 
-def dechiffrement(cypher, d, n, dp, dq):
+def dechiffrement(cypher, d, n, dp, dq, p, q, q_inv):
     liste_clair1 = []
     for c in cypher:
         clair = pow(c, d) % n
@@ -51,23 +58,20 @@ def dechiffrement(cypher, d, n, dp, dq):
 
     liste_clair2 = []
     for c in cypher:
-        m1 = pow(c, dp) % p
-        m2 = pow(c, dq) % q
-        h = (q_inv * (m1 - m2)) % p
-        print("H: ", h)
-        print("m1-m2: ", m1 - m2)
-        # Ajout p pour garder la somme positive
-        clair = m2 + (h * q)
+        mp = pow(c, dp) % p
+        mq = pow(c, dq) % q
+        h = q_inv * (mp - mq) % p
+        clair = mq + (h * q) % n
         liste_clair2.append(clair)
     print("liste clair2 : ", liste_clair2)
 
 
-
 def main():
-    e, d, n, dp, dq = cles()
+    e, d, n, dp, dq, p, q, q_inv = cles()
     cypher = chiffrement("CRYPTO", e, n)
     print("liste chifree :          ", cypher)
-    print("liste clair :            ", dechiffrement(cypher, d, n, dp, dq))
+    dechiffrement(cypher, 11787, 17947, 91, 87, 137, 131, 114)
+    # cypher , d , n , dp , dq , p , q , q_inv
 
 
 if __name__ == "__main__":
