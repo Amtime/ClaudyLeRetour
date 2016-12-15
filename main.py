@@ -16,9 +16,8 @@ Selectionner votre fonction de chiffrement
 def acquisition_message():
     # Taper la chaine de caracteres a chiffrer
     message = str(input("Message : "))
-    # Fournir un ficher texte
+    # TODO Fournir un ficher texte ?
     return(message)
-
 
 def main():
     choix = ""
@@ -31,9 +30,11 @@ def main():
     if choix == 1:
         chiffrement_vces()
     elif choix == 2:
-        generation_keys()
+        gen_keys()
         message = acquisition_message()
-        chiffrement_RSA(message)
+        listechif = chiffrement_RSA(message)
+        print(listechif)
+        dechiffrement_RSA(listechif)
     elif choix == 3:
         signature_RSA()
     elif choix == 4:

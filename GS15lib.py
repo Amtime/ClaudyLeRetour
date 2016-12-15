@@ -1,3 +1,6 @@
+from operator import mul, mod
+from functools import reduce
+
 def identite_bezout(a, b, i=0, x0=1, y0=0, x1=0, y1=1):
     """Input  : int, int
        Output : int, int, int  --> PGCD(a, b), x, y
@@ -30,7 +33,6 @@ def left_padding(string, char, length):
 
 def main():
     pass
-
 
 if __name__ == "__main__":
     main()
