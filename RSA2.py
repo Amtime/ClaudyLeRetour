@@ -19,7 +19,10 @@ def cles():
                 e = random.randint(1, phi-1)
         else:
             e = random.randint(1, phi-1)
-    return e, d, n
+    dp = d % (p - 1)
+    dq = d % (q - 1)
+
+    return e, d, n, dp, dq
 
 
 def chiffrement(message, e, n):
@@ -39,16 +42,14 @@ def chiffrement(message, e, n):
     return(liste_chif)
 
 
-def dechiffrement(cypher, d, n):
+def dechiffrement(cypher, d, n, dp, dq):
     liste_clair1 = []
     for c in cypher:
         clair = pow(c, d) % n
         liste_clair1.append(clair)
-    return(liste_clair1)
+    print("liste clair1 : ", liste_clair1)
 
     liste_clair2 = []
-    dp = d % (p - 1)
-    dq = d % (q - 1)
     for c in cypher:
         m1 = pow(c, dp) % p
         m2 = pow(c, dq) % q
@@ -57,15 +58,16 @@ def dechiffrement(cypher, d, n):
         print("m1-m2: ", m1 - m2)
         # Ajout p pour garder la somme positive
         clair = m2 + (h * q)
-        liste_dechif.append(chr(clair))
+        liste_clair2.append(clair)
+    print("liste clair2 : ", liste_clair2)
 
 
 
 def main():
-    e, d, n = cles()
+    e, d, n, dp, dq = cles()
     cypher = chiffrement("CRYPTO", e, n)
     print("liste chifree :          ", cypher)
-    print("liste clair :            ", dechiffrement(cypher, d, n))
+    print("liste clair :            ", dechiffrement(cypher, d, n, dp, dq))
 
 
 if __name__ == "__main__":
