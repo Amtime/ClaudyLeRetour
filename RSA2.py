@@ -6,17 +6,16 @@ import random
 def cles():
     p = PRIMES[random.randint(0, len(PRIMES))]
     q = PRIMES[random.randint(0, len(PRIMES))]
-    # TODO Generer premiers
-    n = p*q
+    # TODO Generation nb premiers
     q_inv = 1
-    phi = (p-1)*(q-1)
-
     while (q*q_inv)%p != 1:
         p = PRIMES[random.randint(0, len(PRIMES))]
         q = PRIMES[random.randint(0, len(PRIMES))]
         q_inv = identite_bezout(q,p)[1]
         # TODO Condition ternaire
-        print(q_inv)
+
+    n = p * q
+    phi = (p - 1) * (q - 1)
 
     while (True):
         e = random.randint(1, phi)
@@ -53,28 +52,28 @@ def chiffrement(message, e, n):
 
 def dechiffrement(cypher, d, n, dp, dq, p, q, q_inv):
     # Dechiffrement par exponentiation
-    liste_clair1 = []
+    liste_dechifree1 = []
     for c in cypher:
         clair = pow(c, d) % n
-        liste_clair1.append(clair)
-    print("liste clair1 : ", liste_clair1)
+        liste_dechifree1.append(chr(clair))
+    print("liste clair1 : ", liste_dechifree1)
 
     # Dechiffrement avec le TRC
-    liste_clair2 = []
+    liste_dechifree2 = []
     for c in cypher:
         mp = pow(c, dp) % p
         mq = pow(c, dq) % q
         h = q_inv * (mp - mq) % p
         clair = mq + (h * q) % n
-        liste_clair2.append(clair)
-    print("liste clair2 : ", liste_clair2)
+        liste_dechifree2.append(chr(clair))
+    print("liste clair2 : ", liste_dechifree2)
 
 
 def main():
     e, d, n, dp, dq, p, q, q_inv = cles()
-    cypher = chiffrement("CRYPTO", e, n)
+    cypher = chiffrement("Chaine de caractère genre archi longue", e, n)
     print("liste chifree :          ", cypher)
-    dechiffrement(cypher, 11787, 17947, 91, 87, 137, 131, 114)
+    dechiffrement(cypher, d, n, dp, dq, p, q, q_inv)
     # liste chiffree cypher , d , n , dp , dq , p , q , q_inv
 
 
