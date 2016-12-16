@@ -13,9 +13,9 @@ def gen_cles():
         p = PRIMES[random.randint(0, len(PRIMES))]
         q = PRIMES[random.randint(0, len(PRIMES))]
         q_inv = identite_bezout(q,p)[1]
-        # TODO Condition ternaire
 
     n = p * q
+
     phi = (p - 1) * (q - 1)
 
     while (True):
@@ -58,12 +58,14 @@ def chiffrement(message, cle_publique):
 
 def dechiffrement(cypher, cle_secrete):
     d, n, p, q, q_inv, dp, dq = cle_secrete
+
     # Dechiffrement par exponentiation
     liste_dechifree1 = []
     for c in cypher:
         clair = pow(c, d) % n
         liste_dechifree1.append(chr(clair))
-    print("liste clair1 : ", liste_dechifree1)
+    messageclair1 = ''.join(liste_dechifree1)
+    print(messageclair1)
 
     # Dechiffrement avec le TRC
     liste_dechifree2 = []
@@ -73,7 +75,8 @@ def dechiffrement(cypher, cle_secrete):
         h = q_inv * (mp - mq) % p
         clair = mq + (h * q) % n
         liste_dechifree2.append(chr(clair))
-    print("liste clair2 : ", liste_dechifree2)
+    messageclair2 = ''.join(liste_dechifree2)
+    print(messageclair2)
 
 
 def main():
@@ -89,7 +92,7 @@ def main():
     cle_publique = int(e), int(n)
 
     # 3. Chiffrement
-    cypher = chiffrement("CRYPTO", cle_publique)
+    cypher = chiffrement("Attack at dawn", cle_publique)
     print("liste chifree :          ", cypher)
 
     # 4. Dechiffrement

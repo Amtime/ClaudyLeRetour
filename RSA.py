@@ -1,115 +1,109 @@
-from GS15lib import *
-from CONST import *
+from GS15lib import identite_bezout, decoupage_string
+from CONST import PRIMES
 import random
+from base64 import b64decode, b64encode, standard_b64decode
+import codecs
 
-""" 1. Generation des cles
-    2. Ecriture des clés vers fichier
-    3. Chiffrement utilisant clé publique
-    4. Déchiffrement avec clé privée
-    5. Générer une signature avec clé privée
-    6. Vérifier signature avec clé publique
-    7. RSA avec padding PKCS
-"""
 
-def public_key(N, PHI):
-     while(True):
-         E = random.randint(1, PHI)
-         if E % 2 != 0 :
-             if identite_bezout(E, PHI)[0]==1:
-                 break
-             else:
-                 E = random.randint(1, PHI)
-         else:
-             E = random.randint(1, PHI)
+def gen_cles():
+    p = PRIMES[random.randint(0, len(PRIMES))]
+    q = PRIMES[random.randint(0, len(PRIMES))]
+    # TODO Generation nb premiers
 
-    with open("Keys/public_key.txt", "w") as f:
-        f.write(str(N) + "\n" + str(E))
+    q_inv = 1
+    while (q*q_inv)%p != 1:
+        p = PRIMES[random.randint(0, len(PRIMES))]
+        q = PRIMES[random.randint(0, len(PRIMES))]
+        q_inv = identite_bezout(q,p)[1]
 
-    print("Clé publique ok, E : ", E)
-    print("module chiffrement N : ", N)
+    n = p * q
+    print("N : ", n)
+    n_hex = hex(n)
+    print("Hex_N : ", n_hex)
+    print(codecs.encode(n))
 
-def private_key(p, q, PHI):
-    # Lecture de la clé publique et calcul de l'inverse
-    with open('Keys/public_key.txt') as f:
-        E = f.readlines()[1]
-    D = identite_bezout(int(E),PHI)[1]
+    phi = (p-1)*(q-1)
 
-    Dp = D % (p-1)
-    Dq = D % (q-1)
-    q_inv = identite_bezout(q,p)[1]
-    print("Clé privée D : ", D)
+    while (True):
+        e = random.randint(1, phi)
+        d = identite_bezout(e, phi)[1]
+        if e % 2 != 0:
+            if identite_bezout(e, phi-1)[0] == 1:
+                if (e * d) % phi == 1:
+                    break
+            else:
+                e = random.randint(1, phi-1)
+        else:
+            e = random.randint(1, phi-1)
+    dp = d % (p - 1)
+    dq = d % (q - 1)
 
     with open("Keys/private_key_PKCS.txt", "w") as f:
-        f.write(str(p) + "\n" + str(q) + "\n" + str(D) + "\n" + str(Dp) + "\n" + str(Dq) + "\n" + str(q_inv))
+        f.write(str(d) + "\n" + str(n) + "\n" + str(p) + "\n" + str(q) + "\n" + str(q_inv) + "\n" + str(dp) + "\n" + str(dq))
+    with open("Keys/public_key.txt", "w") as f:
+        f.write(str(e) + "\n" + str(n))
 
-def gen_keys():
-    """
-    Génère les fichiers de clé :
-        - public_key.txt avec N, E
-        - private_key_PKCS.txt avec p, q, Dp, Dq
-    """
-    n1 = 19 # PRIMES[random.randint(0, len(PRIMES))]
-    n2 = 43 # PRIMES[random.randint(0, len(PRIMES))]
-    N = n1 * n2
-    phi = (n1-1)*(n2-1)
 
-    public_key(N, phi)
-    private_key(n1, n2, phi)
-
-def chiffrement_RSA(string):
-    # Lecture du fichier clé publique
-    with open('Keys/public_key.txt') as f:
-        E, N = f.readlines()
-    E = int(E); N = int(N)
-
-    liste_chif = []
-    for carac in string:
+def chiffrement(message, cle_publique):
+    e, n = cle_publique
+    print(message)
+    liste_ascii = []
+    for carac in message:
         asciicarac = ord(carac)
-        carac_pow = pow(asciicarac, E) % N
-        liste_chif.append(carac_pow)
+        liste_ascii.append(asciicarac)
+
+    print("liste convertie ASCII : ", liste_ascii)
+    liste_chif = []
+    for ascii in liste_ascii:
+        ascii = int(ascii)
+        carac_pow = pow(ascii, e)
+        chiffre = carac_pow % n
+        liste_chif.append(chiffre)
     return(liste_chif)
 
-def dechiffrement_RSA(liste_chif):
-    """ Dechiffre un message RSA, lit la valeur de clé dans le fichier
-        Input  : list.int - chiffré
-        Output : clair
-    """
-    with open('Keys/private_key_PKCS.txt') as f:
-        p, q, D, Dp, Dq, q_inv  = f.readlines()
-    with open('Keys/public_key.txt') as f:
-        E, N = f.readlines()
-    p = int(p); q = int(q); q_inv = int(q_inv); Dp = int(Dp); Dq = int(Dq); D = int(D); N = int(N)
 
-    liste_dechif = []
-    for c in liste_chif:
-        m1 = pow(c, Dp) % p
-        m2 = pow(c, Dq) % q
-        h = (q_inv * (m1 - m2)) % p
-        print("H: ",h)
-        print("m1-m2: ",m1-m2)
-        # Ajout p pour garder la somme positive
-        clair = m2 + (h * q)
-        liste_dechif.append(chr(clair))
+def dechiffrement(cypher, cle_secrete):
+    d, n, p, q, q_inv, dp, dq = cle_secrete
 
-    liste_dechif2 = []
-    for c in liste_chif:
-        ascii = pow(c, D) % N
-        dechif = chr(ascii)
-        liste_dechif2.append(dechif)
+    # Dechiffrement par exponentiation
+    liste_dechifree1 = []
+    for c in cypher:
+        clair = pow(c, d) % n
+        liste_dechifree1.append(chr(clair))
+    messageclair1 = ''.join(liste_dechifree1)
+    print(messageclair1)
 
-    message_clair = ''.join(liste_dechif)
-    print(message_clair)
-    message_clair2 = ''.join(liste_dechif2)
-    print(message_clair2)
+    # Dechiffrement avec le TRC
+    liste_dechifree2 = []
+    for c in cypher:
+        mp = pow(c, dp) % p
+        mq = pow(c, dq) % q
+        h = q_inv * (mp - mq) % p
+        clair = mq + (h * q) % n
+        liste_dechifree2.append(chr(clair))
+    messageclair2 = ''.join(liste_dechifree2)
+    print(messageclair2)
 
-def signature_RSA():
-    pass
-
-def verif_signature_RSA():
-    pass
 
 def main():
-    pass
+    # 1. Generation des clés
+    gen_cles()
+
+    # 2. Lecture de clés
+    with open('Keys/private_key_PKCS.txt') as f:
+        d, n, p, q, q_inv, dp, dq = f.readlines()
+    cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
+    with open('Keys/public_key.txt') as f:
+        e, n = f.readlines()
+    cle_publique = int(e), int(n)
+
+    # 3. Chiffrement
+    cypher = chiffrement("Attack at dawn", cle_publique)
+    print("liste chifree :          ", cypher)
+
+    # 4. Dechiffrement
+    dechiffrement(cypher, cle_secrete)
+
 
 if __name__ == "__main__":
     main()
