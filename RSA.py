@@ -1,27 +1,33 @@
 from GS15lib import identite_bezout, decoupage_string
-from CONST import PRIMES
+from CONST import PRIMES_4
 import random
 from base64 import b64decode, b64encode, standard_b64decode
 import codecs
+import time
+
+
+def timing(f):
+    def wrap(*args):
+        time1 = time.time()
+        ret = f(*args)
+        time2 = time.time()
+        print('%s function took %0.3f ms' % (f.__name__, (time2-time1)*1000.0))
+        return ret
+    return wrap
 
 
 def gen_cles():
-    p = PRIMES[random.randint(0, len(PRIMES))]
-    q = PRIMES[random.randint(0, len(PRIMES))]
+    p = PRIMES_4[random.randint(0, len(PRIMES_4))]
+    q = PRIMES_4[random.randint(0, len(PRIMES_4))]
     # TODO Generation nb premiers
 
     q_inv = 1
     while (q*q_inv)%p != 1:
-        p = PRIMES[random.randint(0, len(PRIMES))]
-        q = PRIMES[random.randint(0, len(PRIMES))]
+        p = PRIMES_4[random.randint(0, len(PRIMES_4))]
+        q = PRIMES_4[random.randint(0, len(PRIMES_4))]
         q_inv = identite_bezout(q,p)[1]
 
     n = p * q
-    print("N : ", n)
-    n_hex = hex(n)
-    print("Hex_N : ", n_hex)
-    print(codecs.encode(n))
-
     phi = (p-1)*(q-1)
 
     while (True):
@@ -43,7 +49,7 @@ def gen_cles():
     with open("Keys/public_key.txt", "w") as f:
         f.write(str(e) + "\n" + str(n))
 
-
+@timing
 def chiffrement(message, cle_publique):
     e, n = cle_publique
     print(message)
@@ -56,16 +62,17 @@ def chiffrement(message, cle_publique):
     liste_chif = []
     for ascii in liste_ascii:
         ascii = int(ascii)
+        #carac_pow = fast_exp(ascii, e)
+        #print(carac_pow)
         carac_pow = pow(ascii, e)
         chiffre = carac_pow % n
         liste_chif.append(chiffre)
     return(liste_chif)
 
-
-def dechiffrement(cypher, cle_secrete):
+@timing
+def dechiffrement_exponentiation(cypher, cle_secrete):
     d, n, p, q, q_inv, dp, dq = cle_secrete
 
-    # Dechiffrement par exponentiation
     liste_dechifree1 = []
     for c in cypher:
         clair = pow(c, d) % n
@@ -73,7 +80,11 @@ def dechiffrement(cypher, cle_secrete):
     messageclair1 = ''.join(liste_dechifree1)
     print(messageclair1)
 
-    # Dechiffrement avec le TRC
+
+@timing
+def dechiffrement_trc(cypher, cle_secrete):
+    d, n, p, q, q_inv, dp, dq = cle_secrete
+
     liste_dechifree2 = []
     for c in cypher:
         mp = pow(c, dp) % p
@@ -98,11 +109,12 @@ def main():
     cle_publique = int(e), int(n)
 
     # 3. Chiffrement
-    cypher = chiffrement("Attack at dawn", cle_publique)
+    cypher = chiffrement("dehors les branleurs", cle_publique)
     print("liste chifree :          ", cypher)
 
     # 4. Dechiffrement
-    dechiffrement(cypher, cle_secrete)
+    dechiffrement_exponentiation(cypher, cle_secrete)
+    dechiffrement_trc(cypher, cle_secrete)
 
 
 if __name__ == "__main__":

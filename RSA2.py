@@ -1,21 +1,20 @@
 from GS15lib import identite_bezout
-from CONST import PRIMES
+from CONST import PRIMES_4
 import random
 
 
 def gen_cles():
-    p = PRIMES[random.randint(0, len(PRIMES))]
-    q = PRIMES[random.randint(0, len(PRIMES))]
+    p = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
+    q = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
     # TODO Generation nb premiers
 
     q_inv = 1
     while (q*q_inv)%p != 1:
-        p = PRIMES[random.randint(0, len(PRIMES))]
-        q = PRIMES[random.randint(0, len(PRIMES))]
+        p = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
+        q = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
         q_inv = identite_bezout(q,p)[1]
 
     n = p * q
-
     phi = (p - 1) * (q - 1)
 
     while (True):
@@ -92,7 +91,7 @@ def main():
     cle_publique = int(e), int(n)
 
     # 3. Chiffrement
-    cypher = chiffrement("Attack at dawn", cle_publique)
+    cypher = chiffrement("!", cle_publique)
     print("liste chifree :          ", cypher)
 
     # 4. Dechiffrement
