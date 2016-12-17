@@ -1,9 +1,8 @@
 from GS15lib import identite_bezout, decoupage_string
-from CONST import PRIMES_20
-import random
+from CONST import PRIMES_4
 from base64 import b64decode, b64encode, standard_b64decode
-import codecs
-import time
+from primegen import go_prime
+import random, codecs, time
 
 
 def timing(f):
@@ -15,10 +14,26 @@ def timing(f):
         return ret
     return wrap
 
+def OAEP():
+    # Ajout de a bits m+a : Que des zéros
+    # Generation sequence aléatoire de b bits = x
+    # Generation X = H(x) de N+a bits
+    # M = XOR(m, X)
+    # y = G(M) longueur b bits
+    # z = XOR(y, x)
+    # Chiffrement RSA de M et z concaténés
 
-def fast_exp(x,e,m):
+    # En déchiffrement :
+    # y = G(m)
+    # x = XOR(y, z)
+    # X = H(x)
+    # m = XOR(M, X)
+    pass
+
+
+def fast_exp(x,k,m):
     X = x
-    E = e
+    E = k
     Y = 1
     while E > 0:
         if E % 2 == 0:
@@ -30,18 +45,37 @@ def fast_exp(x,e,m):
     return Y
 
 
-def gen_cles():
-    p = PRIMES_20[random.randint(0, len(PRIMES_20)-1)]
-    q = PRIMES_20[random.randint(0, len(PRIMES_20)-1)]
-    # TODO Generation nb premiers
+def lecture_prime():
+    go_prime()
+    print(" -------- LECTURE PREMIERS --------")
+    total_lignes = sum(1 for line in open("primes.txt"))
+    #num_lignes_up = int(0.75 * num_lignes)
 
+    while True:
+        rand = random.randint(int(0.75 * total_lignes), total_lignes - 4)
+        with open("primes.txt", "r") as f:
+            p = int(f.readlines()[rand])
+        with open("primes.txt", "r") as f:
+            q = int(f.readlines()[rand + 4])
+        if int(p) != int(q): break
+
+    return p, q
+
+
+def gen_cles():
+    print(" -------- GENERATION CLES --------")
+
+    p, q = lecture_prime()
     q_inv = 1
     while (q*q_inv)%p != 1:
-        p = PRIMES_20[random.randint(0, len(PRIMES_20)-1)]
-        q = PRIMES_20[random.randint(0, len(PRIMES_20)-1)]
+        p, q = lecture_prime()
         q_inv = identite_bezout(q,p)[1]
 
+    print("P : ", p)
+    print("Q : ", q)
     n = p * q
+    print("TAILLE APPROX DE LA CLé : ", 8 * (len(str(bin(n)))-2))
+    print("N : ", n)
     phi = (p-1)*(q-1)
 
     while (True):
@@ -51,69 +85,112 @@ def gen_cles():
             if identite_bezout(e, phi-1)[0] == 1:
                 if (e * d) % phi == 1:
                     break
-            else:
-                e = random.randint(1, phi-1)
-        else:
-            e = random.randint(1, phi-1)
+
     dp = d % (p - 1)
     dq = d % (q - 1)
+    print("DP : ", dp)
+    print("DQ : ", dq)
 
     with open("Keys/private_key_PKCS.txt", "w") as f:
         f.write(str(d) + "\n" + str(n) + "\n" + str(p) + "\n" + str(q) + "\n" + str(q_inv) + "\n" + str(dp) + "\n" + str(dq))
     with open("Keys/public_key.txt", "w") as f:
         f.write(str(e) + "\n" + str(n))
 
-#@timing
+
 def chiffrement(message, cle_publique):
+    print("\n \n -------- CHIFFREMENT --------")
     e, n = cle_publique
-    print(n)
-    print(message)
+    print("MESSAGE : ", message)
     liste_ascii = []
     for carac in message:
         asciicarac = ord(carac)
         liste_ascii.append(asciicarac)
 
-    print("liste convertie ASCII : ", liste_ascii)
+    print("Message converti ASCII : ", liste_ascii)
     liste_chif = []
     for ascii in liste_ascii:
         ascii = int(ascii)
-        #carac_pow = fast_exp(ascii, e, n)
+        carac_pow = fast_exp(ascii, e, n)
         #print(carac_pow)
-        carac_pow = pow(ascii, e)
-        chiffre = carac_pow % n
-        print(chiffre)
-        liste_chif.append(chiffre)
+        #carac_pow = pow(ascii, e)
+        #chiffre = carac_pow % n
+        print(carac_pow)
+        liste_chif.append(carac_pow)
     return liste_chif
 
 
-#@timing
-def dechiffrement_exponentiation(cypher, cle_secrete):
+def dechiffrement_exponentiation_fast(cypher, cle_secrete):
+    print("\n \n -------- EXP DECHIFFREMENT fast() --------")
     d, n, p, q, q_inv, dp, dq = cle_secrete
 
     liste_dechifree1 = []
     for c in cypher:
         clair = fast_exp(c, d, n)
-        liste_dechifree1.append(chr(clair))
-    messageclair1 = ''.join(liste_dechifree1)
-    print(messageclair1)
+        liste_dechifree1.append(clair)
+        print(clair)
+    #messageclair1 = ''.join(liste_dechifree1)
+    #print(messageclair1)
+
+def dechiffrement_exponentiation_pow(cypher, cle_secrete):
+    print("\n \n -------- EXP DECHIFFREMENT pow() --------")
+    d, n, p, q, q_inv, dp, dq = cle_secrete
+
+    liste_dechifree1 = []
+    for c in cypher:
+        clair = pow(c, d) % n
+        liste_dechifree1.append(clair)
+        print(clair)
+    #messageclair1 = ''.join(liste_dechifree1)
+    #print(messageclair1)
 
 
-#@timing
-def dechiffrement_trc(cypher, cle_secrete):
+def dechiffrement_trc_fast(cypher, cle_secrete):
+    print("\n \n -------- TRC DECHIFFREMENT fast() --------")
     d, n, p, q, q_inv, dp, dq = cle_secrete
 
     liste_dechifree2 = []
     for c in cypher:
         mp = fast_exp(c, dp, p)
+        print("MP : ", mp)
         mq = fast_exp(c, dq, q)
-        h = q_inv * (mp - mq) % p
-        clair = mq + (h * q) % n
-        print(clair)
+        print("MQ : ", mq)
+        h = (q_inv * (mp - mq + p)) % p
+        print("H : ", h)
+        clair = (mq + (h * q)) % n
+        print("CLAIR : ", clair)
+        #liste_dechifree2.append(chr(clair))
+    #messageclair2 = ''.join(liste_dechifree2)
+    #print(messageclair2)
+
+
+def dechiffrement_trc_pow(cypher, cle_secrete):
+    print("\n \n -------- TRC DECHIFFREMENT pow() --------")
+    d, n, p, q, q_inv, dp, dq = cle_secrete
+
+    liste_dechifree2 = []
+    for c in cypher:
+        mp = pow(c, dp) % p
+        print("MP : ", mp)
+
+        mq = pow(c, dq) % q
+        print("MQ : ", mq)
+
+        h = (q_inv * (mp - mq + p)) % p
+        print("H : ", h)
+
+        clair = (mq + (h * q)) % n
+        print("CLAIR : ", clair)
+
+        mprim = (mp - mq) * q
+        print("M' : ", mprim)
+
+        clair2 = (mprim * q_inv) + mq
+        print("CLAIR2 : ", clair2)
         #liste_dechifree2.append(chr(clair))
     messageclair2 = ''.join(liste_dechifree2)
     print(messageclair2)
 
-
+@timing
 def main():
     # 1. Generation des clés
     gen_cles()
@@ -121,18 +198,20 @@ def main():
     # 2. Lecture de clés
     with open('Keys/private_key_PKCS.txt') as f:
         d, n, p, q, q_inv, dp, dq = f.readlines()
-    cle_secrete = long(d), long(n), long(p), long(q), long(q_inv), long(dp), long(dq)
+    cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
     with open('Keys/public_key.txt') as f:
         e, n = f.readlines()
-    cle_publique = long(e), long(n)
+    cle_publique = int(e), int(n)
 
     # 3. Chiffrement
-    cypher = chiffrement("mega secret", cle_publique)
+    cypher = chiffrement("a", cle_publique)
     print("liste chifree :          ", cypher)
 
     # 4. Dechiffrement
-    #dechiffrement_exponentiation(cypher, cle_secrete)
-    dechiffrement_trc(cypher, cle_secrete)
+    #dechiffrement_exponentiation_fast(cypher, cle_secrete)
+    #dechiffrement_exponentiation_pow(cypher, cle_secrete)
+    dechiffrement_trc_fast(cypher, cle_secrete)
+    #dechiffrement_trc_pow(cypher, cle_secrete)
 
 
 if __name__ == "__main__":
