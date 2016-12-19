@@ -1,5 +1,4 @@
-import math
-import os.path
+import math, os.path
 
 
 def test_file():
@@ -12,6 +11,8 @@ def test_file():
 
 
 def prime_gen(start):
+    # TODO Menage dans le fichier
+
     nb_test = start; nb_trouves = 0
     while True:
         is_prime = True
@@ -20,7 +21,8 @@ def prime_gen(start):
                 is_prime = False; break
         if is_prime:
             with open("primes.txt", "a") as f: f.write("\n" + str(nb_test))
-            nb_trouves += 1; print(nb_test)
+            nb_trouves += 1
+            #print(nb_test)
         nb_test += 1
         if nb_trouves == 100: break
 
