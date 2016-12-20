@@ -80,6 +80,11 @@ def calcul_hash(x_array, w_array = []):
         print("T = ", t)
         print("Ft :        ", fonc_t(t, B, C, D))
         print("Constante : ", const_t(t), "\n")
+
+        print(A)
+        print(permut_circu(5, str(A)))
+
+        #T = add_modulo(permut_circu(5, ))
         # 1. T = S5(A) + f(BCD) + E + Wt + Kt
         # E = D
         # D = C
