@@ -43,7 +43,6 @@ def random_bytes(length, output = ""):
 
 
 def main():
-    print(random_bytes(32))
     pass
 
 if __name__ == "__main__":

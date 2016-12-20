@@ -1,4 +1,4 @@
-from GS15lib import left_padding
+from GS15lib import left_padding, random_bytes
 from CONST import INIT_H
 
 
@@ -10,10 +10,11 @@ def permut_circu(k, w):
 def add_modulo(a,b):
     # Input strings binaire 32 bits
     # Output add modulo 2^32 sur 32 bits
-    resultat = (int(a,2) + int(b,2)) % pow(2, 32)
-    return '{0:0{1}b}'.format(resultat, 32)
+    res = (int(a,2) + int(b,2)) % pow(2, 32)
+    return '{0:0{1}b}'.format(res, 32)
 
-def const_t(t, A, B, C, D, res = ""):
+
+def const_t(t, A, B, C, D):
     if 0 <= t <= 19:
         res = 0x5A827999
     elif 20 <= t <= 39:
@@ -23,15 +24,24 @@ def const_t(t, A, B, C, D, res = ""):
     elif 40 <= t <= 59:
         res = 0xAC52C1D5
     else: print("Erreur"); return
-    return '{0:0{1}b}'.format(res, 32)
+    print("Constante : ",bin(int(res, 16))[2:].zfill(32))
+    return res
 
 
 def fonc_t(t, B, C, D):
+    bcd = bin(int(B, 2)^int(C, 2)^int(D, 2))
+    #print(format())
+    # TODO a finir
+    #print('{0:0{1}b}'.format(bc, 32))
+
+
     if 0 <= t <= 19:    res = (B & C) | (B & D)
     elif 20 <= t <= 39: res = B ^ C ^ D
     elif 60 <= t <= 79: res = B ^ C ^ D
     elif 40 <= t <= 59: res = (B & C) | (B & D) | (C & D)
     else: print("Erreur"); return
+
+    #print("Fonction T : ", res)
     return '{0:0{1}b}'.format(res, 32)
 
 
@@ -49,6 +59,13 @@ def prep_message(x, x_array = []):
 
 
 def calcul_hash(x_array, w_array = []):
+    # Init des vecteurs d'initialisation
+    A = random_bytes(32)
+    B = random_bytes(32)
+    C = random_bytes(32)
+    D = random_bytes(32)
+    E = random_bytes(32)
+
     # Création des mots de 16x32bits pour chaque bloc de 512bits
     for xi_array in x_array:
         for i in range(0, 16):
@@ -57,19 +74,30 @@ def calcul_hash(x_array, w_array = []):
     # Initialisation des Wt
     for t in range(15,80):
         operation = int(w_array[t - 3], 2) ^ int(w_array[t - 8], 2) \
-        ^ int(w_array[t - 14], 2) ^ int(w_array[t - 16], 2)
+            ^ int(w_array[t - 14], 2) ^ int(w_array[t - 16], 2)
 
         w_array.append(permut_circu(1, '{0:0{1}b}'.format(operation, 32)))
     print(w_array)
 
-    A, B, C, D, E = INIT_H
-    # TODO Randomisation des vecteur initiaux
-
     # Calcul des T,C
     for t in range(0,80): # De 0 à 79
-        #print(fonc_t(t, int(B, 2), int(C, 2), int(D, 2)))
-        print(const_t(t, A, B, C, D))
-        #res1 = add_modulo(permut_circu(5, A), fonc_t(t, B, C, D))
+        fonc_t(t, B, C, D)
+        # 1. T = S5(A) + f(BCD) + E + Wt + Kt
+        # E = D
+        # D = C
+        # C = S30(B)
+        # B = A
+        # A = T
+        #res1 = add_modulo(permut_circu(5, '{0:0{1}b}'.format(A, 32)), fonc_t(t, B, C, D))
+        #print(res1)
+
+        # 2. H0 = H0 + A
+        #    H1 = H1 + B
+        #    H2 = H2 + C
+        #    H3 = H3 + D
+        #    H4 = H4 + E
+        pass
+
 
 
 def SHA1(x):
