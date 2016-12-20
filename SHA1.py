@@ -14,34 +14,30 @@ def add_modulo(a,b):
     return '{0:0{1}b}'.format(res, 32)
 
 
-def const_t(t, A, B, C, D):
-    if 0 <= t <= 19:
-        res = 0x5A827999
-    elif 20 <= t <= 39:
-        res = 0x6ED9EBA1
-    elif 60 <= t <= 79:
-        res = 0x8F1BBCDC
-    elif 40 <= t <= 59:
-        res = 0xAC52C1D5
+def const_t(t):
+    # Affectation de la constante K selon t
+    if t in range(0,20):     res = 0x5A827999
+    elif t in range(20, 40): res = 0x6ED9EBA1
+    elif t in range(40, 60): res = 0xAC52C1D5
+    elif t in range(60, 80): res = 0x8F1BBCDC
     else: print("Erreur"); return
-    print("Constante : ",bin(int(res, 16))[2:].zfill(32))
-    return res
+    #print("Constante : ",bin(int(res, 16))[2:].zfill(32))
+    return '{0:0{1}b}'.format(res, 32)
 
 
-def fonc_t(t, B, C, D):
-    bcd = bin(int(B, 2)^int(C, 2)^int(D, 2))
-    #print(format())
-    # TODO a finir
-    #print('{0:0{1}b}'.format(bc, 32))
-
-
-    if 0 <= t <= 19:    res = (B & C) | (B & D)
-    elif 20 <= t <= 39: res = B ^ C ^ D
-    elif 60 <= t <= 79: res = B ^ C ^ D
-    elif 40 <= t <= 59: res = (B & C) | (B & D) | (C & D)
-    else: print("Erreur"); return
-
-    #print("Fonction T : ", res)
+def fonc_t(t, b, c, d):
+    """
+    :param t: Fonction parametrique Ft
+    :param b: Mot aléatoires 32 bits
+    :param c: Mot aléatoires 32 bits
+    :param d: Mot aléatoires 32 bits
+    :return: Opération selon t sur B, C, D sur 32 bits
+    """
+    b, c, d = int(b, 2), int(c, 2), int(d, 2)
+    if t in range(0,20):    res = (b & c) | (b & d)
+    elif t in range(20, 40): res = b ^ c ^ d
+    elif t in range(40, 60): res = (b & c) | (b & d) | (c & d)
+    elif t in range(60, 80): res = b ^ c ^ d
     return '{0:0{1}b}'.format(res, 32)
 
 
@@ -81,7 +77,9 @@ def calcul_hash(x_array, w_array = []):
 
     # Calcul des T,C
     for t in range(0,80): # De 0 à 79
-        fonc_t(t, B, C, D)
+        print("T = ", t)
+        print("Ft :        ", fonc_t(t, B, C, D))
+        print("Constante : ", const_t(t), "\n")
         # 1. T = S5(A) + f(BCD) + E + Wt + Kt
         # E = D
         # D = C
