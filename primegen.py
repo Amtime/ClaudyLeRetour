@@ -11,8 +11,6 @@ def test_file():
 
 
 def prime_gen(start):
-    # TODO Menage dans le fichier
-
     nb_test = start; nb_trouves = 0
     while True:
         is_prime = True
@@ -25,6 +23,19 @@ def prime_gen(start):
             #print(nb_test)
         nb_test += 1
         if nb_trouves == 100: break
+
+def menage_file():
+    # Lecture de la limite sup : Valeur de la -200 ligne
+    with open("primes.txt", "rb") as f: last = int(f.readlines()[-200].decode())
+    print(last)
+    # Suppression des lignes de valeur inférieures :
+    with open('primes.txt') as f:
+        for line in f:
+            if line.decode() < last:
+                #delete
+                pass
+            else:
+                pass
 
 
 def go_prime():

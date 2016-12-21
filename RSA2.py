@@ -6,7 +6,6 @@ import random
 def gen_cles():
     p = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
     q = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
-    # TODO Generation nb premiers
 
     q_inv = 1
     while (q*q_inv)%p != 1:
@@ -15,7 +14,7 @@ def gen_cles():
         q_inv = identite_bezout(q,p)[1]
 
     n = p * q
-    phi = (p - 1) * (q - 1)
+    phi = (p - 1)*(q - 1)
 
     while (True):
         e = random.randint(1, phi)

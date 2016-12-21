@@ -27,6 +27,7 @@ def OAEP_encode(m, em_len):
     # 1. Test de la longueur de p, ne doit pas dépasser la limite d'input de
     # la fonction de hash.
 
+
     # 2. Test de la longueur du message.
     # m_len > em_len - 2h_len - 1
 

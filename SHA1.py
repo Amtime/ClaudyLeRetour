@@ -3,7 +3,7 @@ from CONST import INIT_H
 
 
 def permut_circu(k, w):
-    w = w[k:] + w[0:k-1]
+    w = w[k-1:] + w[0:k-1]
     return w
 
 
@@ -56,11 +56,11 @@ def prep_message(x, x_array = []):
 
 def calcul_hash(x_array, w_array = []):
     # Init des vecteurs d'initialisation
-    A = random_bytes(32)
-    B = random_bytes(32)
-    C = random_bytes(32)
-    D = random_bytes(32)
-    E = random_bytes(32)
+    h0 = A = random_bytes(32)
+    h1 = B = random_bytes(32)
+    h2 = C = random_bytes(32)
+    h3 = D = random_bytes(32)
+    h4 = E = random_bytes(32)
 
     # Création des mots de 16x32bits pour chaque bloc de 512bits
     for xi_array in x_array:
@@ -73,43 +73,40 @@ def calcul_hash(x_array, w_array = []):
             ^ int(w_array[t - 14], 2) ^ int(w_array[t - 16], 2)
 
         w_array.append(permut_circu(1, '{0:0{1}b}'.format(operation, 32)))
-    print(w_array)
 
     # Calcul des T,C
     for t in range(0,80): # De 0 à 79
-        print("T = ", t)
-        print("Ft :        ", fonc_t(t, B, C, D))
-        print("Constante : ", const_t(t), "\n")
+        grand_t = add_modulo(permut_circu(5, str(A)), fonc_t(t, B, C, D))
+        grand_t = add_modulo(grand_t, E)
+        grand_t = add_modulo(grand_t, w_array[t])
+        grand_t = add_modulo(grand_t, const_t(t))
 
-        print(A)
-        print(permut_circu(5, str(A)))
+        E = D; D = C
+        C = permut_circu(30, str(B))
+        B = A; A = grand_t
 
-        #T = add_modulo(permut_circu(5, ))
-        # 1. T = S5(A) + f(BCD) + E + Wt + Kt
-        # E = D
-        # D = C
-        # C = S30(B)
-        # B = A
-        # A = T
-        #res1 = add_modulo(permut_circu(5, '{0:0{1}b}'.format(A, 32)), fonc_t(t, B, C, D))
-        #print(res1)
+    # Affectation des variables finales
+    h0 = add_modulo(h0, A)
+    h1 = add_modulo(h1, B)
+    h2 = add_modulo(h2, C)
+    h3 = add_modulo(h3, D)
+    h4 = add_modulo(h4, E)
 
-        # 2. H0 = H0 + A
-        #    H1 = H1 + B
-        #    H2 = H2 + C
-        #    H3 = H3 + D
-        #    H4 = H4 + E
-        pass
-
+    return h0 + h1 + h2 + h3 + h4
 
 
 def SHA1(x):
+    # Input x en binaire
+    # Préparation du message
     x_array = prep_message(x)
-    hash_final = calcul_hash(x_array)
+
+    # Calcul du Hash
+    final_hash =calcul_hash(x_array)
+
 
 
 def main():
-    SHA1("010100101001000000001")
+    SHA1("01010101010101010010")
 
 
 if __name__ == "__main__":
