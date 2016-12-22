@@ -3,6 +3,8 @@ from CONST import PRIMES_4
 from base64 import b64decode, b64encode, standard_b64decode
 from primegen import go_prime
 import random, codecs, time, hashlib
+from SHA1 import SHA1
+from math import ceil
 
 
 def timing(f):
@@ -15,32 +17,71 @@ def timing(f):
     return wrap
 
 
+def MGF():
+    """
+    Génération d'un masque basée sur une fonction de hachage
+    h_len = len(SHA1("01001101")) / 8
+
+    Z : graine de génération, un octet
+    l : Longueur finale du masque en octets, au plus 2^32 (h_len)
+    out - mask : octet string de long in - l
+    """
+    for counter in range(0, ceil((1 / (h_len - 1) - 1))):
+        print(i)
+
+    pass
+
+def OS2IP():
+    # Conversion string > Int positif
+
+    pass
+
 def OAEP_encode(m, em_len):
     """
-
-
-    :param m: Message à chiffrer
+    :param m: Message à chiffrer, binaire
     :param em_len: Longueur en octets du message chiffré, au moins 2*h_len + 1 : encoded message length
-    :return: Message chiffré de longueur em_Len
+    :return: Message chiffré de longueur em_len
     """
-    p = random_bytes(8)
+    m_len = len(m)
+    h_len = 160           # Output SHA1
+    em_len = 2*h_len + 1  # Au moins
+
     # 1. Test de la longueur de p, ne doit pas dépasser la limite d'input de
     # la fonction de hash.
+    if len(m) > pow(2, 64):
+        print("Erreur")
+        return
+    else:
+        print("step 1")
+        pass
 
 
     # 2. Test de la longueur du message.
     # m_len > em_len - 2h_len - 1
+    if m_len > em_len - 2*h_len - 1:
+        print("message trop long")
+        return
+    else:
+        print("step 2")
+        pass
+
 
     # 3. Generation d'une chaine de 0 de longueur : PS
     # em_Len - m_len - 2h_len - 1 en octets
+    PS = left_padding("", 0, em_len - m_len - 2*h_len - 1)
+    print(PS)
 
     # 4. p_hash = Hash(p)
+    p_hash = SHA1(p)
+    print(p_hash)
 
     # 5. Concatenation
     # DB = p_hash + PS + 01 + m
+    DB = str(p_hash) + PS + "01" + m
 
     # 6. Generation d'un octet aléatoire : seed
     # de longueur h_len
+    seed = random_bytes(h_len)
 
     # 7. dbMask = MGF(seed, em_len-h_len)
 
@@ -64,26 +105,26 @@ def chiffrement(message, cle_publique):
         liste_binaire.append(format(ord(carac), '010b'))
     print("Message converti ASCII : ", liste_binaire)
 
-    OAEP_encode("hey", "ho")
+    OAEP_encode(, )
 
     liste_chif = []
     for binaire in liste_binaire:
 
         # Padding OAEP
-        grand_n = len(bin(n)) - 2
-        to_pad = format(int(ascii), 'b')
-        print("\nOAEP : \nOAEP BINAIRE : ", to_pad)
-        petit_a = left_padding(to_pad, "0", len(to_pad) + 10)
-        print("OAEP PADDED : ", petit_a)
-
-        petit_x = random_bytes(30)
-        print("OAEP SeqAleatoire : ", petit_x)
+        # grand_n = len(bin(n)) - 2
+        # to_pad = format(int(ascii), 'b')
+        # print("\nOAEP : \nOAEP BINAIRE : ", to_pad)
+        # petit_a = left_padding(to_pad, "0", len(to_pad) + 10)
+        # print("OAEP PADDED : ", petit_a)
+        #
+        # petit_x = random_bytes(30)
+        # print("OAEP SeqAleatoire : ", petit_x)
 
         # HASH, on veut len(X) = len(N+a)
-        test_hash = hashlib.md5()
-        test_hash.update(petit_x.encode())
-        grand_x = test_hash.hexdigest()
-        print("Premier Hash - 128 bits : ", grand_x)
+        # test_hash = hashlib.md5()
+        # test_hash.update(petit_x.encode())
+        # grand_x = test_hash.hexdigest()
+        # print("Premier Hash - 128 bits : ", grand_x)
 
         #grand_m = XOR(petit_m -  , grand_x - 128 bits)
 
@@ -114,7 +155,6 @@ def lecture_prime():
     go_prime()
     print(" -------- LECTURE PREMIERS --------")
     total_lignes = sum(1 for line in open("primes.txt"))
-    #num_lignes_up = int(0.75 * num_lignes)
 
     while True:
         rand = random.randint(int(0.90 * total_lignes), total_lignes - 4)

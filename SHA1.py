@@ -1,5 +1,4 @@
 from GS15lib import left_padding, random_bytes
-from CONST import INIT_H
 
 
 def permut_circu(k, w):
@@ -101,7 +100,8 @@ def SHA1(x):
     x_array = prep_message(x)
 
     # Calcul du Hash
-    final_hash =calcul_hash(x_array)
+    final_hash = calcul_hash(x_array)
+    print(len(final_hash))
 
 
 
