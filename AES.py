@@ -60,6 +60,8 @@ def roundKey_add(bloc, roundKey):
     """
     output = []
     if len(bloc) != len(roundKey):
+        print("Bloc : {}".format(bloc))
+        print("RoundKey : {}".format(roundKey))
         raise("Problème dans roundKey_add")
     for i in range(len(bloc)):
         output.append(bloc[i]^roundKey[i])

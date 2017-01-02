@@ -24,12 +24,17 @@ def decoupage_string(string, n):
         output.append(string[i*n: i*n + n])
     return(output)
 
+
 def left_padding(string, char, length):
     """Sert principalement à compléter les 0 à gauche des nombres en binaires"""
     output = string
     while len(output) < length:
         output = char + output
     return(output)
+
+def right_padding(string, char, length):
+    return(string + (length - len(string)) * char)
+
 
 def main():
     pass

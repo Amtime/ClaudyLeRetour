@@ -1,22 +1,26 @@
 import sys
 import feistel
-from GS15lib import decoupage_string
-from RSA import *
+from GS15lib import decoupage_string, right_padding
+from VCES import VCES_encryption, VCES_decryption, VCES_key_generation
+# from RSA import *
 
 
 messageAcceuil = """
 Selectionner votre fonction de chiffrement
 ->1<- Chiffrement symétrique VCES
-->2<- Chiffrement RSA avec module multiple
-->3<- Signature RSA avec module multiple
-->4<- Déchiffrement RSA
-->5<- Vérifier une signature RSA
+->2<- Déchiffrement symétrique VCES
+->3<- Chiffrement RSA avec module multiple
+->4<- Signature RSA avec module multiple
+->5<- Déchiffrement RSA
+->6<- Vérifier une signature RSA
 """
 
-def acquisition_message():
+
+
+def acquisition_message(string):
     # Taper la chaine de caracteres a chiffrer
-    message = str(input("Message : "))
-    # TODO Fournir un ficher texte ?
+    message = str(input(string))
+    # TODO Fournir un ficher texte ? - OSEF
     return(message)
 
 def main():
@@ -28,18 +32,37 @@ def main():
             continue
 
     if choix == 1:
-        chiffrement_vces()
+        message = acquisition_message("Message : ")
+        key = VCES_key_generation(acquisition_message("Key : "))
+        print(key)
+        # On s'assure que tous les blocs fassent 128 bits en ajoutant du padding au dernier
+        message = right_padding(message, "\x00", 16 * ((len(message) // 16) + 1))
+        cipher = ""
+        for bloc in decoupage_string(message, 16):
+            cipher += VCES_encryption(bloc, key)
+        print(cipher)
+
     elif choix == 2:
+        cipher = acquisition_message("Message chiffré (binaire) : ")
+        key = VCES_key_generation(acquisition_message("Key : "))
+        print(key)
+        plaintext = ""
+        for bloc in decoupage_string(cipher, 128):
+            plaintext += VCES_decryption(bloc, key)
+        print(plaintext)
+
+
+    elif choix == 3:
         gen_keys()
-        message = acquisition_message()
+        message = acquisition_message("Message : ")
         listechif = chiffrement_RSA(message)
         print(listechif)
         dechiffrement_RSA(listechif)
-    elif choix == 3:
-        signature_RSA()
     elif choix == 4:
-        dechiffrement_RSA()
+        signature_RSA()
     elif choix == 5:
+        dechiffrement_RSA()
+    elif choix == 6:
         verif_signature_RSA()
 
 if __name__ == "__main__":
