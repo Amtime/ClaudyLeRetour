@@ -1,13 +1,21 @@
-from GS15lib import *
-from CONST import *
+from GS15lib import identite_bezout
+from CONST import PRIMES_4
 import random
 
 
-def cles():
-    p = PRIMES[random.randint(0, len(PRIMES))]
-    q = PRIMES[random.randint(0, len(PRIMES))]
-    n = p*q
-    phi = (p - 1) * (q - 1)
+def gen_cles():
+    p = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
+    q = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
+
+    q_inv = 1
+    while (q*q_inv)%p != 1:
+        p = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
+        q = PRIMES_4[random.randint(0, len(PRIMES_4)-1)]
+        q_inv = identite_bezout(q,p)[1]
+
+    n = p * q
+    phi = (p - 1)*(q - 1)
+
     while (True):
         e = random.randint(1, phi)
         d = identite_bezout(e, phi)[1]
@@ -19,16 +27,23 @@ def cles():
                 e = random.randint(1, phi-1)
         else:
             e = random.randint(1, phi-1)
-    return e, d, n
+    dp = d % (p - 1)
+    dq = d % (q - 1)
+
+    with open("Keys/private_key_PKCS.txt", "w") as f:
+        f.write(str(d) + "\n" + str(n) + "\n" + str(p) + "\n" + str(q) + "\n" + str(q_inv) + "\n" + str(dp) + "\n" + str(dq))
+    with open("Keys/public_key.txt", "w") as f:
+        f.write(str(e) + "\n" + str(n))
 
 
-def chiffrement(message, e, n):
+def chiffrement(message, cle_publique):
+    e, n = cle_publique
+    print(message)
     liste_ascii = []
     for carac in message:
         asciicarac = ord(carac)
         liste_ascii.append(asciicarac)
 
-    liste_ascii = [71, 83, 49, 53]
     print("liste convertie ASCII : ", liste_ascii)
     liste_chif = []
     for ascii in liste_ascii:
@@ -39,33 +54,47 @@ def chiffrement(message, e, n):
     return(liste_chif)
 
 
-def dechiffrement(cypher, d, n):
-    liste_clair1 = []
+def dechiffrement(cypher, cle_secrete):
+    d, n, p, q, q_inv, dp, dq = cle_secrete
+
+    # Dechiffrement par exponentiation
+    liste_dechifree1 = []
     for c in cypher:
         clair = pow(c, d) % n
-        liste_clair1.append(clair)
-    return(liste_clair1)
+        liste_dechifree1.append(chr(clair))
+    messageclair1 = ''.join(liste_dechifree1)
+    print(messageclair1)
 
-    liste_clair2 = []
-    dp = d % (p - 1)
-    dq = d % (q - 1)
+    # Dechiffrement avec le TRC
+    liste_dechifree2 = []
     for c in cypher:
-        m1 = pow(c, dp) % p
-        m2 = pow(c, dq) % q
-        h = (q_inv * (m1 - m2)) % p
-        print("H: ", h)
-        print("m1-m2: ", m1 - m2)
-        # Ajout p pour garder la somme positive
-        clair = m2 + (h * q)
-        liste_dechif.append(chr(clair))
-
+        mp = pow(c, dp) % p
+        mq = pow(c, dq) % q
+        h = q_inv * (mp - mq) % p
+        clair = mq + (h * q) % n
+        liste_dechifree2.append(chr(clair))
+    messageclair2 = ''.join(liste_dechifree2)
+    print(messageclair2)
 
 
 def main():
-    e, d, n = cles()
-    cypher = chiffrement("CRYPTO", e, n)
+    # 1. Generation des clés
+    gen_cles()
+
+    # 2. Lecture de clés
+    with open('Keys/private_key_PKCS.txt') as f:
+        d, n, p, q, q_inv, dp, dq = f.readlines()
+    cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
+    with open('Keys/public_key.txt') as f:
+        e, n = f.readlines()
+    cle_publique = int(e), int(n)
+
+    # 3. Chiffrement
+    cypher = chiffrement("!", cle_publique)
     print("liste chifree :          ", cypher)
-    print("liste clair :            ", dechiffrement(cypher, d, n))
+
+    # 4. Dechiffrement
+    dechiffrement(cypher, cle_secrete)
 
 
 if __name__ == "__main__":
