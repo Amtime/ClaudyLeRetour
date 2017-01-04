@@ -1,10 +1,9 @@
-from GS15lib import identite_bezout, decoupage_string, left_padding, random_bytes
-from CONST import PRIMES_4
+from GS15lib import identite_bezout, decoupage_string, left_padding, right_padding, random_bytes, XOR
 from base64 import b64decode, b64encode, standard_b64decode
+from CONST import PRIMES_110
 from primegen import go_prime
 import random, codecs, time, hashlib
 from SHA1 import SHA1
-from math import ceil
 
 
 def timing(f):
@@ -17,169 +16,117 @@ def timing(f):
     return wrap
 
 
-def MGF():
-    """
-    Génération d'un masque basée sur une fonction de hachage
-    h_len = len(SHA1("01001101")) / 8
+def OAEP_encode(N):
+    #print("\n -------- PADDING OAEP --------")
 
-    Z : graine de génération, un octet
-    l : Longueur finale du masque en octets, au plus 2^32 (h_len)
-    out - mask : octet string de long in - l
-    """
-    for counter in range(0, ceil((1 / (h_len - 1) - 1))):
-        print(i)
-
-    pass
-
-def OS2IP():
-    # Conversion string > Int positif
-
-    pass
-
-def OAEP_encode(m, em_len):
-    """
-    :param m: Message à chiffrer, binaire
-    :param em_len: Longueur en octets du message chiffré, au moins 2*h_len + 1 : encoded message length
-    :return: Message chiffré de longueur em_len
-    """
-    m_len = len(m)
-    h_len = 160           # Output SHA1
-    em_len = 2*h_len + 1  # Au moins
-
-    # 1. Test de la longueur de p, ne doit pas dépasser la limite d'input de
-    # la fonction de hash.
-    if len(m) > pow(2, 64):
-        print("Erreur")
-        return
-    else:
-        print("step 1")
-        pass
+    long_message = len(N)
+    concat = N + right_padding("", "0", 160-len(N))  # Concat = NbitsMessage + Padding (l_padding = h_len - N)
+    x = random_bytes(8)                 # Séquence aléatoire x
+    X = SHA1(x)                         # X = hash(x)
+    M = XOR(concat, X)
+    z = XOR(x, SHA1(M))
+    return M, z, long_message
 
 
-    # 2. Test de la longueur du message.
-    # m_len > em_len - 2h_len - 1
-    if m_len > em_len - 2*h_len - 1:
-        print("message trop long")
-        return
-    else:
-        print("step 2")
-        pass
+def OAEP_decode(M, z):
+    # Input : Message M, chaine z
 
+    x = XOR(SHA1(M), z)
+    m = XOR(M, SHA1(x))
 
-    # 3. Generation d'une chaine de 0 de longueur : PS
-    # em_Len - m_len - 2h_len - 1 en octets
-    PS = left_padding("", 0, em_len - m_len - 2*h_len - 1)
-    print(PS)
+    # m = Message + padding (..000) long l
 
-    # 4. p_hash = Hash(p)
-    p_hash = SHA1(p)
-    print(p_hash)
-
-    # 5. Concatenation
-    # DB = p_hash + PS + 01 + m
-    DB = str(p_hash) + PS + "01" + m
-
-    # 6. Generation d'un octet aléatoire : seed
-    # de longueur h_len
-    seed = random_bytes(h_len)
-
-    # 7. dbMask = MGF(seed, em_len-h_len)
-
-    # 8. maskedDB = XOR(DB, dbMask)
-
-    # 9. seedMask = MGF(maskedDB, h_len)
-
-    # 10. maskedSeed = XOR(seed, seedMask)
-
-    # 11. EM = concat : maskedSeed, maskedDB
-    pass
+    return m
 
 
 def chiffrement(message, cle_publique):
     print("\n \n -------- CHIFFREMENT --------")
     e, n = cle_publique
 
+    if len(message) % 2 != 0: message += " "
+    print("Longueur message : ", len(message))
     print("MESSAGE : ", message)
-    liste_binaire = []
-    for carac in message:
-        liste_binaire.append(format(ord(carac), '010b'))
-    print("Message converti ASCII : ", liste_binaire)
 
-    OAEP_encode(, )
+    liste_binaire = []
+    for carac in message: # Conversion binaire de chaque caractère >> 8 bits
+        liste_binaire.append('{0:0{1}b}'.format(ord(carac), 8))
+    print("Message converti ASCII : ", len(liste_binaire), liste_binaire)
+    print("\nPadding de chaque ASCII en 20 blocs de 8 bits..")
+
+    # Padding OAEP : 160 bits soit 20 fois 8bits
+    liste_bin_OAEP = []
+    for binaire in liste_binaire:
+        M, z, l = OAEP_encode(binaire)
+        for j in range(0, 20):
+            liste_bin_OAEP.append(M[8 * j:8 * (j + 1)])
+        for j in range(0, 20):
+            liste_bin_OAEP.append(z[8 * j:8 * (j + 1)])
+    print("Liste apres OAEP : ", len(liste_bin_OAEP), liste_bin_OAEP)
+
+
+    # Transformation de liste_binaire en blocs de 8 bits
+    liste_ent = [] # Décimaux (convertis depuis 2x8bits)
+    for i in range(0, int(len(liste_bin_OAEP)/2)):
+        concat_ent = liste_bin_OAEP[2*i] + liste_bin_OAEP[2*i + 1] # Concatenation par 2
+        liste_ent.append(int(concat_ent, 2))       # Conversion en décimal
+    print("\nRegroupement en blocs de 16bits et conversion binaire vers décimal..")
+    print("Liste d'entiers : ", len(liste_ent), liste_ent)
+
 
     liste_chif = []
-    for binaire in liste_binaire:
+    for ent in liste_ent:
+        #exp_chif = fast_exp(ent, e, n)
+        exp_chif = pow(ent, e, n)
+        hexa_chif = '{0:0{1}x}'.format(exp_chif, len(hex(n))-2)
+        liste_chif.append(hexa_chif)                   # Longueur chif : N en hexa
+    print("\nChiffrement des entiers avec la clé publique..")
+    print("Liste chifree :       ", len(liste_chif), liste_chif)
 
-        # Padding OAEP
-        # grand_n = len(bin(n)) - 2
-        # to_pad = format(int(ascii), 'b')
-        # print("\nOAEP : \nOAEP BINAIRE : ", to_pad)
-        # petit_a = left_padding(to_pad, "0", len(to_pad) + 10)
-        # print("OAEP PADDED : ", petit_a)
-        #
-        # petit_x = random_bytes(30)
-        # print("OAEP SeqAleatoire : ", petit_x)
-
-        # HASH, on veut len(X) = len(N+a)
-        # test_hash = hashlib.md5()
-        # test_hash.update(petit_x.encode())
-        # grand_x = test_hash.hexdigest()
-        # print("Premier Hash - 128 bits : ", grand_x)
-
-        #grand_m = XOR(petit_m -  , grand_x - 128 bits)
-
-        # Conversion ASCII - INT
-        ascii = int(ascii)
-
-        # Exponentiation
-        carac_pow = fast_exp(ascii, e, n)
-        liste_chif.append(carac_pow)
     return liste_chif
 
 
-def fast_exp(x,k,m):
-    X = x
-    E = k
-    Y = 1
-    while E > 0:
-        if E % 2 == 0:
-            X = (X * X) % m
-            E = E/2
-        else:
-            Y = (X * Y) % m
-            E = E - 1
-    return Y
-
-
-def lecture_prime():
+def lecture_gen():
     go_prime()
     print(" -------- LECTURE PREMIERS --------")
-    total_lignes = sum(1 for line in open("primes.txt"))
+    total_lignes = sum(1 for line in open("primes2.txt"))
+    print("total ligne fichier primes : ", total_lignes)
 
     while True:
-        rand = random.randint(int(0.90 * total_lignes), total_lignes - 4)
-        with open("primes.txt", "r") as f:
+        rand = random.randint(1, int(total_lignes) - 3)
+        print(rand)
+        with open("primes2.txt", "r") as f:
             p = int(f.readlines()[rand])
-        with open("primes.txt", "r") as f:
-            q = int(f.readlines()[rand + 4])
+        with open("primes2.txt", "r") as f:
+            q = int(f.readlines()[rand + 2])
         if int(p) != int(q): break
 
     return p, q
 
 
+def lecture_const():
+    print(" -------- LECTURE PREMIERS DANS LISTE --------")
+    a = random.randint(1, len(PRIMES_110)-1)
+    print(len(PRIMES_110))
+    print(a)
+    b = random.randint(1, len(PRIMES_110)-1)
+    print(b)
+
+    return PRIMES_110[a], PRIMES_110[b]
+
+
 def gen_cles():
     print(" -------- GENERATION CLES --------")
 
-    p, q = lecture_prime()
+    p, q = lecture_const()
     q_inv = 1
     while (q*q_inv)%p != 1:
-        p, q = lecture_prime()
+        p, q = lecture_const()
         q_inv = identite_bezout(q,p)[1]
 
     print("P : ", p)
     print("Q : ", q)
     n = p * q
-    print("TAILLE APPROX DE LA CLé : ", (len(bin(n))-2))
+    print("TAILLE APPROX DE LA CLé : ", (len(bin(n))-2), "BITS")
     print("N : ", n)
     phi = (p-1)*(q-1)
 
@@ -202,100 +149,89 @@ def gen_cles():
         f.write(str(e) + "\n" + str(n))
 
 
-def dechiffrement_exponentiation_fast(cypher, cle_secrete):
-    print("\n \n -------- EXP DECHIFFREMENT fast() --------")
+def dechiffrement(cypher, cle_secrete):
+    print("\n \n -------- DECHIFFREMENT --------")
+    # Input : Liste chifree (Hexa)
+    #         Cle secrete
     d, n, p, q, q_inv, dp, dq = cle_secrete
 
-    liste_dechifree1 = []
+    #1 OK Dechiffrement avec clé privée > Liste d'entiers
+
+    print("\nDechiffrement Exponentiation et clé dérivées..")
+    liste_dechifree = []
     for c in cypher:
-        clair = fast_exp(c, d, n)
-        liste_dechifree1.append(clair)
-        print(clair)
-    #messageclair1 = ''.join(liste_dechifree1)
-    #print(messageclair1)
-
-
-def dechiffrement_exponentiation_pow(cypher, cle_secrete):
-    print("\n \n -------- EXP DECHIFFREMENT pow() --------")
-    d, n, p, q, q_inv, dp, dq = cle_secrete
-
-    liste_dechifree1 = []
-    for c in cypher:
-        clair = pow(c, d) % n
-        liste_dechifree1.append(clair)
-        print(clair)
-    #messageclair1 = ''.join(liste_dechifree1)
-    #print(messageclair1)
-
-
-def dechiffrement_trc_fast(cypher, cle_secrete):
-    print("\n \n -------- TRC DECHIFFREMENT fast() --------")
-    d, n, p, q, q_inv, dp, dq = cle_secrete
-
-    liste_dechifree2 = []
-    for c in cypher:
-        mp = fast_exp(c, dp, p)
-        print("MP : ", mp)
-        mq = fast_exp(c, dq, q)
-        print("MQ : ", mq)
+        #mp = fast_exp(int(c, 16), dp, p)
+        mp = pow(int(c, 16), dp, p)
+        #mq = fast_exp(int(c, 16), dq, q)
+        mq = pow(int(c, 16), dq, q)
         h = (q_inv * (mp - mq + p)) % p
-        print("H : ", h)
         clair = (mq + (h * q)) % n
-        print("CLAIR : ", clair)
-        #liste_dechifree2.append(chr(clair))
-    #messageclair2 = ''.join(liste_dechifree2)
-    #print(messageclair2)
+        liste_dechifree.append(clair)
+    print("Liste d'entiers : ", len(liste_dechifree), liste_dechifree)
 
+    #2 Conversion des entiers en blocs de 16 bits
+    print("\nConversion chiffré > Bloc 16 bits > Blocs 8 bits..")
+    liste_blocs, liste_huit = [], []
+    for dechif in liste_dechifree:
+        liste_blocs.append('{0:0{1}b}'.format(dechif, 16))
+    print("Blocs 16 bits : ", len(liste_blocs), liste_blocs)
+    #3 Séparation en blocs de 8 bits
+    for bloc in liste_blocs:
+        liste_huit.append(bloc[0:8])
+        liste_huit.append(bloc[8:16])
+    print("Blocs 8 bits : ", len(liste_huit), liste_huit)
 
-def dechiffrement_trc_pow(cypher, cle_secrete):
-    print("\n \n -------- TRC DECHIFFREMENT pow() --------")
-    d, n, p, q, q_inv, dp, dq = cle_secrete
+    #4 OAEP Decode - Regroupe 20 x 8b
+    print("\nRegroupement en 20x8..")
+    liste_OAEP_decode = []
+    for blocs in range(0, int(len(liste_huit) / 20)):
+        oaep = ""
+        for vin in range(0, 20):
+            oaep += liste_huit[blocs*20 + vin]
+        liste_OAEP_decode.append(oaep)
+    print("Blocs 160 bits : ", len(liste_OAEP_decode), liste_OAEP_decode)
 
-    liste_dechifree2 = []
-    for c in cypher:
-        mp = pow(c, dp) % p
-        print("MP : ", mp)
+    print("\nSéparation des blocs Z..")
+    liste_message, liste_z = [], []
+    for i in range(0, int(len(liste_OAEP_decode)/2)):
+        liste_message.append(liste_OAEP_decode[2*i])
+        liste_z.append(liste_OAEP_decode[2*i + 1])
+    print("Listes messages: ", len(liste_message), liste_message)
+    print("Listes z:        ", len(liste_z), liste_z)
 
-        mq = pow(c, dq) % q
-        print("MQ : ", mq)
+    print("\nDécodage OAEP..")
+    liste_OAEP_decode = []
+    for i in range(0, len(liste_message)):
+        clair = OAEP_decode(liste_message[i], liste_z[i])
+        liste_OAEP_decode.append(clair[0:8])
+    print("Listes clair avec padding: ", len(liste_OAEP_decode), liste_OAEP_decode)
 
-        h = (q_inv * (mp - mq + p)) % p
-        print("H : ", h)
+    #6 Conversion Binaire > ASCII > Caractère
+    liste_clair = []
+    for decod in liste_OAEP_decode:
+        liste_clair.append(chr(int(decod, 2)))
 
-        clair = (mq + (h * q)) % n
-        print("CLAIR : ", clair)
-
-        mprim = (mp - mq) * q
-        print("M' : ", mprim)
-
-        clair2 = (mprim * q_inv) + mq
-        print("CLAIR2 : ", clair2)
-        #liste_dechifree2.append(chr(clair))
-    messageclair2 = ''.join(liste_dechifree2)
-    print(messageclair2)
+    return ''.join(liste_clair)
 
 
 def main():
-    # 1. Generation des clés
-    gen_cles()
+        # 1. Generation des clés
+        gen_cles()
 
-    # 2. Lecture de clés
-    with open('Keys/private_key_PKCS.txt') as f:
-        d, n, p, q, q_inv, dp, dq = f.readlines()
-    cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
-    with open('Keys/public_key.txt') as f:
-        e, n = f.readlines()
-    cle_publique = int(e), int(n)
+        # 2. Lecture de clés
+        with open('Keys/private_key_PKCS.txt') as f:
+            d, n, p, q, q_inv, dp, dq = f.readlines()
+        cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
+        with open('Keys/public_key.txt') as f:
+            e, n = f.readlines()
+        cle_publique = int(e), int(n)
 
-    # 3. Chiffrement
-    cypher = chiffrement("a", cle_publique)
-    print("liste chifree :          ", cypher)
+        # 3. Chiffrement
+        cypher = chiffrement("message test message bien long pour faire un test en montee de charge", cle_publique)
 
-    # 4. Dechiffrement
-    #dechiffrement_exponentiation_fast(cypher, cle_secrete)
-    #dechiffrement_exponentiation_pow(cypher, cle_secrete)
-    #dechiffrement_trc_fast(cypher, cle_secrete)
-    #dechiffrement_trc_pow(cypher, cle_secrete)
+        # 4. Dechiffrement
+        decyphered = dechiffrement(cypher, cle_secrete)
+        print("Texte clair : ", decyphered)
 
 
 if __name__ == "__main__":

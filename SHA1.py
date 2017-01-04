@@ -55,11 +55,11 @@ def prep_message(x, x_array = []):
 
 def calcul_hash(x_array, w_array = []):
     # Init des vecteurs d'initialisation
-    h0 = A = random_bytes(32)
-    h1 = B = random_bytes(32)
-    h2 = C = random_bytes(32)
-    h3 = D = random_bytes(32)
-    h4 = E = random_bytes(32)
+    h0 = A = "00100010111111000111100011001000"
+    h1 = B = "01001110111000011110111001100001"
+    h2 = C = "10011101011101000111001111100010"
+    h3 = D = "00100101001000001100111100100001"
+    h4 = E = "00000100100110011000000110100101"
 
     # Création des mots de 16x32bits pour chaque bloc de 512bits
     for xi_array in x_array:
@@ -95,19 +95,24 @@ def calcul_hash(x_array, w_array = []):
 
 
 def SHA1(x):
-    # Input x en binaire
+    # Input     : x en binaire
+    # Output    : Hash SHA1 en binaire
+
     # Préparation du message
     x_array = prep_message(x)
 
     # Calcul du Hash
     final_hash = calcul_hash(x_array)
-    print(len(final_hash))
 
+    return final_hash
 
 
 def main():
-    SHA1("01010101010101010010")
-
+    x = "0001001001001110111000100010101101001111111100101101011010111110001101010111001010000101001000010010110000001111110100111100111110011100110000001000011100111000"
+    X = SHA1(x)
+    print(X)
+    print(SHA1(x))
+    pass
 
 if __name__ == "__main__":
     main()
