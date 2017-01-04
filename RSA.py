@@ -214,6 +214,20 @@ def dechiffrement(cypher, cle_secrete):
     return ''.join(liste_clair)
 
 
+def gen_signature(cle_secrete):
+# Generation d'une signature RSA
+# Out : Message & Chiffré du message
+    testEncode = chiffrement("test", cle_secrete)
+    return "test", testEncode
+
+
+def check_signature(cle_publique):
+# Verification d'une signature RSA
+# Déchiffrer le message et le comparer
+# Out : Vrai / Faux
+    pass
+
+
 def main():
         # 1. Generation des clés
         gen_cles()
@@ -226,13 +240,20 @@ def main():
             e, n = f.readlines()
         cle_publique = int(e), int(n)
 
+        string_test = "message test message bien long pour faire un test en montee de charge"
+
         # 3. Chiffrement
-        cypher = chiffrement("message test message bien long pour faire un test en montee de charge", cle_publique)
+        cypher = chiffrement(string_test, cle_publique)
 
         # 4. Dechiffrement
         decyphered = dechiffrement(cypher, cle_secrete)
         print("Texte clair : ", decyphered)
 
+        if decyphered == string_test: print("Chiffrement, Dechiffrement, OK")
+
+        # 5. Génération d'une signature
+        print(gen_signature(cle_secrete))
+        # TODO Nombre de variables dans les fichiers de clé.
 
 if __name__ == "__main__":
     main()
