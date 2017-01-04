@@ -74,5 +74,4 @@ if __name__ == "__main__":
     plaintext = "0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111".replace(" ", "")
     ciphertext = DES_encryption(plaintext, key, 16)
     plain = DES_decryption(ciphertext, key, 16)
-    print(plaintext)
     print(plain)

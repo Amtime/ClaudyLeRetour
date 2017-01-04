@@ -34,7 +34,6 @@ def main():
     if choix == 1:
         message = acquisition_message("Message : ")
         key = VCES_key_generation(acquisition_message("Key : "))
-        print(key)
         # On s'assure que tous les blocs fassent 128 bits en ajoutant du padding au dernier
         message = right_padding(message, "\x00", 16 * ((len(message) // 16) + 1))
         cipher = ""
@@ -45,7 +44,6 @@ def main():
     elif choix == 2:
         cipher = acquisition_message("Message chiffré (binaire) : ")
         key = VCES_key_generation(acquisition_message("Key : "))
-        print(key)
         plaintext = ""
         for bloc in decoupage_string(cipher, 128):
             plaintext += VCES_decryption(bloc, key)
