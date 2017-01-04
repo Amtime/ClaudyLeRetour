@@ -33,7 +33,7 @@ def main():
     if choix == 1:
         message = acquisition_message("Message : ")
         key = VCES_key_generation(acquisition_message("Key : "))
-        # On s'assure que tous les blocs fassent 128 bits en ajoutant du padding au dernier
+        # On s'assure que tous les blocs fassent 128 bits en ajoutant du padding 
         message = right_padding(message, "\x00", 16 * ((len(message) // 16) + 1))
         cipher = ""
         for bloc in decoupage_string(message, 16):

@@ -20,7 +20,7 @@ def DES_decryption(bloc, K, iteration):
     D, G = decoupage_string(permutation_application(bloc, PERMUTATION_INITIAL_DES), 32)   # Permutation initiale + découpage en 2 blocks de 32 bits
 
     for i in range(iteration):
-        FO = feistel(G, clef[len(clef) - i - 1])
+        FO = feistel(G, clef[iteration - i])
         GNP = left_padding(bin(int(D, 2) ^ int(FO, 2))[2:], "0", 32)
         G, D = GNP, G
 
