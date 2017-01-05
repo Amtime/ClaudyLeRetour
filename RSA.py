@@ -41,7 +41,7 @@ def OAEP_decode(M, z):
 
 def chiffrement(message, cle_publique):
     print("\n \n -------- CHIFFREMENT --------")
-    e, n = cle_publique
+    e, n, x1, x2, x3, x4, x5 = cle_publique
 
     if len(message) % 2 != 0: message += " "
     print("Longueur message : ", len(message))
@@ -79,74 +79,10 @@ def chiffrement(message, cle_publique):
         exp_chif = pow(ent, e, n)
         hexa_chif = '{0:0{1}x}'.format(exp_chif, len(hex(n))-2)
         liste_chif.append(hexa_chif)                   # Longueur chif : N en hexa
-    print("\nChiffrement des entiers avec la clé publique..")
+    print("\nChiffrement des entiers avec la clé fournie..")
     print("Liste chifree :       ", len(liste_chif), liste_chif)
 
     return liste_chif
-
-
-def lecture_gen():
-    go_prime()
-    print(" -------- LECTURE PREMIERS --------")
-    total_lignes = sum(1 for line in open("primes2.txt"))
-    print("total ligne fichier primes : ", total_lignes)
-
-    while True:
-        rand = random.randint(1, int(total_lignes) - 3)
-        print(rand)
-        with open("primes2.txt", "r") as f:
-            p = int(f.readlines()[rand])
-        with open("primes2.txt", "r") as f:
-            q = int(f.readlines()[rand + 2])
-        if int(p) != int(q): break
-
-    return p, q
-
-
-def lecture_const():
-    print(" -------- LECTURE PREMIERS DANS LISTE --------")
-    a = random.randint(1, len(PRIMES_110)-1)
-    print(len(PRIMES_110))
-    print(a)
-    b = random.randint(1, len(PRIMES_110)-1)
-    print(b)
-
-    return PRIMES_110[a], PRIMES_110[b]
-
-
-def gen_cles():
-    print(" -------- GENERATION CLES --------")
-
-    p, q = lecture_const()
-    q_inv = 1
-    while (q*q_inv)%p != 1:
-        p, q = lecture_const()
-        q_inv = identite_bezout(q,p)[1]
-
-    print("P : ", p)
-    print("Q : ", q)
-    n = p * q
-    print("TAILLE APPROX DE LA CLé : ", (len(bin(n))-2), "BITS")
-    print("N : ", n)
-    phi = (p-1)*(q-1)
-
-    while (True):
-        e = random.randint(1, phi)
-        d = identite_bezout(e, phi)[1]
-        if e % 2 != 0:
-            if identite_bezout(e, phi-1)[0] == 1:
-                if (e * d) % phi == 1:
-                    break
-
-    dp = d % (p - 1)
-    dq = d % (q - 1)
-    print("DP : ", dp)
-    print("DQ : ", dq)
-
-    with open("Keys/private_key_PKCS.txt", "w") as f:
-        f.write(str(d) + "\n" + str(n) + "\n" + str(p) + "\n" + str(q) + "\n" + str(q_inv) + "\n" + str(dp) + "\n" + str(dq))
-    with open("Keys/public_key.txt", "w") as f:
-        f.write(str(e) + "\n" + str(n))
 
 
 def dechiffrement(cypher, cle_secrete):
@@ -214,18 +150,136 @@ def dechiffrement(cypher, cle_secrete):
     return ''.join(liste_clair)
 
 
-def gen_signature(cle_secrete):
+def lecture_gen():
+    go_prime()
+    print(" -------- LECTURE PREMIERS --------")
+    total_lignes = sum(1 for line in open("primes2.txt"))
+    print("total ligne fichier primes : ", total_lignes)
+
+    while True:
+        rand = random.randint(1, int(total_lignes) - 3)
+        print(rand)
+        with open("primes2.txt", "r") as f:
+            p = int(f.readlines()[rand])
+        with open("primes2.txt", "r") as f:
+            q = int(f.readlines()[rand + 2])
+        if int(p) != int(q): break
+
+    return p, q
+
+
+def lecture_const():
+    print(" -------- LECTURE PREMIERS DANS LISTE --------")
+    a = random.randint(1, len(PRIMES_110)-1)
+    print(len(PRIMES_110))
+    print(a)
+    b = random.randint(1, len(PRIMES_110)-1)
+    print(b)
+
+    return PRIMES_110[a], PRIMES_110[b]
+
+
+def chiffrement_no_OAEP(message, cle_fournie):
+    print("\n \n -------- CHIFFREMENT --------")
+    e, n, x1, x2, x3, x4, x5 = cle_fournie
+
+    liste_chif = []
+    for c in message:
+        liste_chif.append(pow(ord(c), e, n))
+    return(liste_chif)
+
+
+def dechiffrement_no_OAEP(cypher, cle_fournie):
+    print("\n \n -------- DECHIFFREMENT --------")
+    # Input : Liste chifree (Hexa)
+    #         Cle secrete
+    d, n, p, q, q_inv, dp, dq = cle_secrete
+
+
+
+
+def gen_cles():
+    print(" -------- GENERATION CLES --------")
+
+    p, q = lecture_const()
+    q_inv = 1
+    while (q*q_inv)%p != 1:
+        p, q = lecture_const()
+        q_inv = identite_bezout(q,p)[1]
+
+    print("P : ", p)
+    print("Q : ", q)
+    n = p * q
+    print("TAILLE APPROX DE LA CLé : ", (len(bin(n))-2), "BITS")
+    print("N : ", n)
+    phi = (p-1)*(q-1)
+
+    while (True):
+        e = random.randint(1, phi)
+        d = identite_bezout(e, phi)[1]
+        if e % 2 != 0:
+            if identite_bezout(e, phi-1)[0] == 1:
+                if (e * d) % phi == 1:
+                    break
+
+    dp = d % (p - 1)
+    dq = d % (q - 1)
+    print("DP : ", dp)
+    print("DQ : ", dq)
+
+    with open("Keys/private_key_PKCS.txt", "w") as f:
+        f.write(str(d) + "\n" + str(n) + "\n" + str(p) + "\n" + str(q) + "\n" + str(q_inv) + "\n" + str(dp) + "\n" + str(dq))
+    with open("Keys/public_key.txt", "w") as f:
+        f.write(str(e) + "\n" + str(n) + "\n" + "pad" + "\n" + "pad" + "\n" + "pad" + "\n" + "pad" + "\n" + "pad")
+
+
+def gen_signature(message, cle_secrete):
 # Generation d'une signature RSA
 # Out : Message & Chiffré du message
-    testEncode = chiffrement("test", cle_secrete)
-    return "test", testEncode
+    print("\n -------- Generation de la signature --------")
+
+    # Lecture de D et N
+    d, n, p, q, q_inv, dp, dq = cle_secrete
+
+    # Hash du message
+    hashTest = SHA1(message)
+
+    # Chiffrement avec clé privée
+    signList = []
+    for i in range(0, 20):
+        octet = hashTest[8 * i:8 * (i + 1)]
+        cypher = pow(int(octet, 2), d, n)
+        signList.append(hex(cypher))
+    signString = ''.join(signList)
+
+    print("Signature : ", signString)
+    # TODO Export signature vers fichier
+
+    return signString
 
 
-def check_signature(cle_publique):
-# Verification d'une signature RSA
-# Déchiffrer le message et le comparer
-# Out : Vrai / Faux
-    pass
+def check_signature(message, signature, cle_publique):
+    print("\n -------- Verification de la signature --------")
+
+    # Lecture de la clé
+    e, n, x1, x2, x3, x4, x5 = cle_publique
+    # TODO Lecture fichier de signature
+
+    # Raise signature to power E mod N
+    hexList = signature[2:].split('0x')
+
+    octetList = []
+    for i in range(0, len(hexList)):
+        entier = int(hexList[i], 16)
+        decypher = pow(entier, e, n)
+        octetList.append('{0:0{1}b}'.format(decypher, 8))
+    hashString = ''.join(octetList)
+
+    # Comparer les hash
+    hashTest = SHA1(message)
+    print(hashString == hashTest)
+
+    return
 
 
 def main():
@@ -237,10 +291,10 @@ def main():
             d, n, p, q, q_inv, dp, dq = f.readlines()
         cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
         with open('Keys/public_key.txt') as f:
-            e, n = f.readlines()
-        cle_publique = int(e), int(n)
+            e, n, x1, x2, x3, x4, x5 = f.readlines()
+        cle_publique = int(e), int(n), x1, x2, x3, x4, x5
 
-        string_test = "message test message bien long pour faire un test en montee de charge"
+        string_test = "message test"
 
         # 3. Chiffrement
         cypher = chiffrement(string_test, cle_publique)
@@ -252,8 +306,8 @@ def main():
         if decyphered == string_test: print("Chiffrement, Dechiffrement, OK")
 
         # 5. Génération d'une signature
-        print(gen_signature(cle_secrete))
-        # TODO Nombre de variables dans les fichiers de clé.
+        signature = gen_signature("test", cle_secrete)
+        check_signature("test", signature, cle_publique)
 
 if __name__ == "__main__":
     main()
