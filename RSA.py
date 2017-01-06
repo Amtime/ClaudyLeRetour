@@ -2,7 +2,7 @@ from GS15lib import identite_bezout, decoupage_string, left_padding, right_paddi
 from base64 import b64decode, b64encode, standard_b64decode
 from CONST import PRIMES_110
 from primegen import go_prime
-import random, codecs, time, hashlib
+import random, time
 from SHA1 import SHA1
 
 
@@ -63,7 +63,6 @@ def chiffrement(message, cle_publique):
             liste_bin_OAEP.append(z[8 * j:8 * (j + 1)])
     print("Liste apres OAEP : ", len(liste_bin_OAEP), liste_bin_OAEP)
 
-
     # Transformation de liste_binaire en blocs de 8 bits
     liste_ent = [] # Décimaux (convertis depuis 2x8bits)
     for i in range(0, int(len(liste_bin_OAEP)/2)):
@@ -71,7 +70,6 @@ def chiffrement(message, cle_publique):
         liste_ent.append(int(concat_ent, 2))       # Conversion en décimal
     print("\nRegroupement en blocs de 16bits et conversion binaire vers décimal..")
     print("Liste d'entiers : ", len(liste_ent), liste_ent)
-
 
     liste_chif = []
     for ent in liste_ent:
@@ -96,9 +94,7 @@ def dechiffrement(cypher, cle_secrete):
     print("\nDechiffrement Exponentiation et clé dérivées..")
     liste_dechifree = []
     for c in cypher:
-        #mp = fast_exp(int(c, 16), dp, p)
         mp = pow(int(c, 16), dp, p)
-        #mq = fast_exp(int(c, 16), dq, q)
         mq = pow(int(c, 16), dq, q)
         h = (q_inv * (mp - mq + p)) % p
         clair = (mq + (h * q)) % n
@@ -171,31 +167,9 @@ def lecture_gen():
 def lecture_const():
     print(" -------- LECTURE PREMIERS DANS LISTE --------")
     a = random.randint(1, len(PRIMES_110)-1)
-    print(len(PRIMES_110))
-    print(a)
     b = random.randint(1, len(PRIMES_110)-1)
-    print(b)
 
     return PRIMES_110[a], PRIMES_110[b]
-
-
-def chiffrement_no_OAEP(message, cle_fournie):
-    print("\n \n -------- CHIFFREMENT --------")
-    e, n, x1, x2, x3, x4, x5 = cle_fournie
-
-    liste_chif = []
-    for c in message:
-        liste_chif.append(pow(ord(c), e, n))
-    return(liste_chif)
-
-
-def dechiffrement_no_OAEP(cypher, cle_fournie):
-    print("\n \n -------- DECHIFFREMENT --------")
-    # Input : Liste chifree (Hexa)
-    #         Cle secrete
-    d, n, p, q, q_inv, dp, dq = cle_secrete
-
-
 
 
 def gen_cles():

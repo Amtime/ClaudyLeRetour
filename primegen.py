@@ -37,21 +37,6 @@ def prime_gen(start):
         if nb_trouves == 100: break
 
 
-def menage_file():
-    # Lecture de la limite sup : Valeur de la -200 ligne
-    with open("primes2.txt", "rb") as f:
-        last = int(f.readlines()[-200])
-        print(last)
-        lines = f.readlines()
-        # /!\ variable lines vide
-        f.close()
-    # Suppression des lignes de valeur inférieures :
-    with open("primes2.txt", "w") as f:
-        for line in lines:
-            if int(line) < last:
-                f.write(line)
-
-
 def go_prime():
     start = test_file()
     prime_gen(start)
