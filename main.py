@@ -2,7 +2,7 @@ import sys
 import feistel
 from GS15lib import decoupage_string, right_padding
 from VCES import VCES_encryption, VCES_decryption, VCES_key_generation
-# from RSA import *
+from RSA import gen_cles, chiffrement, dechiffrement, gen_signature, check_signature
 
 
 messageAcceuil = """
@@ -16,16 +16,15 @@ Selectionner votre fonction de chiffrement
 """
 
 
-
 def acquisition_message(string):
     # Taper la chaine de caracteres a chiffrer
     message = str(input(string))
-    # TODO Fournir un ficher texte ? - OSEF
     return(message)
+
 
 def main():
     choix = ""
-    while choix not in [1,2,3,4,5]:
+    while choix not in [1,2,3,4,5,6]:
         try:
             choix = int(input(messageAcceuil))
         except ValueError:
@@ -51,17 +50,41 @@ def main():
 
 
     elif choix == 3:
-        gen_keys()
+        # Chiffrement RSA avec module multiple
+
+        print("Utiliser les clés présentes dans le dossier Keys ? y/n\nSi non changer les fichiers")
+        reponse = str(input())
+
+        if reponse == "y": pass
+        elif reponse == "n": gen_cles()
+        else: return "Terminé"
+
         message = acquisition_message("Message : ")
-        listechif = chiffrement_RSA(message)
-        print(listechif)
-        dechiffrement_RSA(listechif)
+
+        chiffrement(message, 'Keys/public_key.txt')
+        print("\nTerminé, voir fichier : RSA-Cypher-Output.txt")
+
     elif choix == 4:
-        signature_RSA()
+        # Signature RSA avec module multiple
+        with open('Keys/private_key_PKCS.txt') as f:
+            d, n, p, q, q_inv, dp, dq = f.readlines()
+        cle_secrete = int(d), int(n), int(p), int(q), int(q_inv), int(dp), int(dq)
+        gen_signature("01001101001", cle_secrete)
+
     elif choix == 5:
-        dechiffrement_RSA()
+        # Dechiffrement RSA
+        print("Utilisation de la clé privée du dossier Keys..")
+
+        dechiffrement('Keys/private_key_PKCS.txt')
+
     elif choix == 6:
-        verif_signature_RSA()
+        # Verification signature RSA
+        with open('Keys/public_key.txt') as f:
+            e, n, x1, x2, x3, x4, x5 = f.readlines()
+        cle_publique = int(e), int(n), x1, x2, x3, x4, x5
+        f.close()
+
+        check_signature(cle_publique)
 
 if __name__ == "__main__":
     sys.exit(main())

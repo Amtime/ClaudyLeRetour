@@ -1,5 +1,4 @@
 from GS15lib import identite_bezout, decoupage_string, left_padding, right_padding, random_bytes, XOR
-from base64 import b64decode, b64encode, standard_b64decode
 from CONST import PRIMES_110
 from primegen import go_prime
 import random, time
@@ -21,8 +20,8 @@ def OAEP_encode(N):
 
     long_message = len(N)
     concat = N + right_padding("", "0", 160-len(N))  # Concat = NbitsMessage + Padding (l_padding = h_len - N)
-    x = random_bytes(8)                 # Séquence aléatoire x
-    X = SHA1(x)                         # X = hash(x)
+    x = random_bytes(8)
+    X = SHA1(x)
     M = XOR(concat, X)
     z = XOR(x, SHA1(M))
     return M, z, long_message
@@ -33,15 +32,15 @@ def OAEP_decode(M, z):
 
     x = XOR(SHA1(M), z)
     m = XOR(M, SHA1(x))
-
-    # m = Message + padding (..000) long l
-
     return m
 
 
-def chiffrement(message, cle_publique):
+def chiffrement(message, path):
     print("\n \n -------- CHIFFREMENT --------")
-    e, n, x1, x2, x3, x4, x5 = cle_publique
+
+    with open(path) as f:
+        e, n, x1, x2, x3, x4, x5 = f.readlines()
+    e = int(e); n = int(n)
 
     if len(message) % 2 != 0: message += " "
     print("Longueur message : ", len(message))
@@ -73,24 +72,33 @@ def chiffrement(message, cle_publique):
 
     liste_chif = []
     for ent in liste_ent:
-        #exp_chif = fast_exp(ent, e, n)
         exp_chif = pow(ent, e, n)
         hexa_chif = '{0:0{1}x}'.format(exp_chif, len(hex(n))-2)
         liste_chif.append(hexa_chif)                   # Longueur chif : N en hexa
     print("\nChiffrement des entiers avec la clé fournie..")
     print("Liste chifree :       ", len(liste_chif), liste_chif)
 
+    # Ecriture du message chiffré dans un fichier
+    f = open('RSA-Cypher-Output.txt', 'w')
+    for c in liste_chif:
+        f.write("%s\n" % c)
+
     return liste_chif
 
 
-def dechiffrement(cypher, cle_secrete):
+def dechiffrement(path):
     print("\n \n -------- DECHIFFREMENT --------")
     # Input : Liste chifree (Hexa)
     #         Cle secrete
-    d, n, p, q, q_inv, dp, dq = cle_secrete
+    with open(path) as f:
+        d, n, p, q, q_inv, dp, dq = f.readlines()
+    d = int(d);n = int(n);p = int(p);q = int(q);q_inv = int(q_inv);dp = int(dp);dq = int(dq)
+
+
+    cypher = [line.strip() for line in open("RSA-Cypher-Output.txt", 'r')]
+    print("CYPHER : ", cypher)
 
     #1 OK Dechiffrement avec clé privée > Liste d'entiers
-
     print("\nDechiffrement Exponentiation et clé dérivées..")
     liste_dechifree = []
     for c in cypher:
@@ -128,8 +136,8 @@ def dechiffrement(cypher, cle_secrete):
     for i in range(0, int(len(liste_OAEP_decode)/2)):
         liste_message.append(liste_OAEP_decode[2*i])
         liste_z.append(liste_OAEP_decode[2*i + 1])
-    print("Listes messages: ", len(liste_message), liste_message)
-    print("Listes z:        ", len(liste_z), liste_z)
+    print("Listes M: ", len(liste_message), liste_message)
+    print("Listes z: ", len(liste_z), liste_z)
 
     print("\nDécodage OAEP..")
     liste_OAEP_decode = []
@@ -142,8 +150,11 @@ def dechiffrement(cypher, cle_secrete):
     liste_clair = []
     for decod in liste_OAEP_decode:
         liste_clair.append(chr(int(decod, 2)))
+    clairFinal = ''.join(liste_clair)
 
-    return ''.join(liste_clair)
+    print("Texte clair : ", clairFinal)
+    with open("RSA-Clear-Output.txt", "w") as f:
+        f.write(str(clairFinal))
 
 
 def lecture_gen():
@@ -227,20 +238,24 @@ def gen_signature(message, cle_secrete):
     signString = ''.join(signList)
 
     print("Signature : ", signString)
-    # TODO Export signature vers fichier
 
-    return signString
+    # Ecriture de la signature dans un fichier
+    with open("signature.txt", "w") as f:
+        f.write(str(message) + "\n" + str(signString))
 
 
-def check_signature(message, signature, cle_publique):
+def check_signature(cle_publique):
     print("\n -------- Verification de la signature --------")
 
     # Lecture de la clé
     e, n, x1, x2, x3, x4, x5 = cle_publique
-    # TODO Lecture fichier de signature
+
+    #with open('signature.txt') as f:
+    #    message, signature = f.readlines()
+    sign = [line.strip() for line in open("signature.txt", 'r')]
 
     # Raise signature to power E mod N
-    hexList = signature[2:].split('0x')
+    hexList = sign[1][2:].split('0x')
 
     octetList = []
     for i in range(0, len(hexList)):
@@ -250,7 +265,7 @@ def check_signature(message, signature, cle_publique):
     hashString = ''.join(octetList)
 
     # Comparer les hash
-    hashTest = SHA1(message)
+    hashTest = SHA1(str(sign[0]))
     print(hashString == hashTest)
 
     return
@@ -268,20 +283,15 @@ def main():
             e, n, x1, x2, x3, x4, x5 = f.readlines()
         cle_publique = int(e), int(n), x1, x2, x3, x4, x5
 
-        string_test = "message test"
-
         # 3. Chiffrement
-        cypher = chiffrement(string_test, cle_publique)
+        chiffrement("message test", 'Keys/public_key.txt')
 
         # 4. Dechiffrement
-        decyphered = dechiffrement(cypher, cle_secrete)
-        print("Texte clair : ", decyphered)
-
-        if decyphered == string_test: print("Chiffrement, Dechiffrement, OK")
+        dechiffrement('Keys/private_key_PKCS.txt')
 
         # 5. Génération d'une signature
-        signature = gen_signature("test", cle_secrete)
-        check_signature("test", signature, cle_publique)
+        gen_signature("01001101001", cle_secrete)
+        check_signature(cle_publique)
 
 if __name__ == "__main__":
     main()

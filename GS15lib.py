@@ -55,10 +55,6 @@ def right_padding(string, char, length):
     return output
 
 
-def right_padding(string, char, length):
-    return(string + (length - len(string)) * char)
-
-
 def random_bytes(length, output = ""):
     while len(output) < length:
         output = str(random.randint(0, 1)) + output
