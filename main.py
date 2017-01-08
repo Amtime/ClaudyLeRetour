@@ -74,8 +74,8 @@ def main():
     elif choix == 5:
         # Dechiffrement RSA
         print("Utilisation de la clé privée du dossier Keys..")
-
         dechiffrement('Keys/private_key_PKCS.txt')
+        print("\nTerminé, voir fichier : RSA-Clear-Output.txt")
 
     elif choix == 6:
         # Verification signature RSA
